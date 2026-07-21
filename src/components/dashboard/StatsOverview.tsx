@@ -33,8 +33,8 @@ export const StatsOverview: React.FC<StatsProps> = ({
       <div className="col-6 col-md-4 col-lg-2">
         <div className="card-stitch p-3 h-100">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-secondary fw-semibold uppercase" style={{ fontSize: '11px' }}>Total Tasks</small>
-            <div className="rounded-2 bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+            <small className="text-info fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Total Tasks</small>
+            <div className="rounded-3 bg-info bg-opacity-15 text-info d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
               <span className="material-symbols-outlined fs-5">monitoring</span>
             </div>
           </div>
@@ -47,10 +47,10 @@ export const StatsOverview: React.FC<StatsProps> = ({
 
       {/* Urgent Escalations */}
       <div className="col-6 col-md-4 col-lg-2">
-        <div className="card-stitch p-3 h-100" style={{ borderColor: stats.escalated > 0 ? 'rgba(244, 63, 94, 0.4)' : undefined }}>
+        <div className="card-stitch p-3 h-100" style={{ borderColor: stats.escalated > 0 ? 'rgba(244, 63, 94, 0.5)' : undefined }}>
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-danger fw-semibold uppercase" style={{ fontSize: '11px' }}>SLA Escalated</small>
-            <div className="rounded-2 bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+            <small className="text-danger fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>SLA Escalated</small>
+            <div className="rounded-3 bg-danger bg-opacity-15 text-danger d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
               <span className="material-symbols-outlined fs-5">warning</span>
             </div>
           </div>
@@ -65,8 +65,8 @@ export const StatsOverview: React.FC<StatsProps> = ({
       <div className="col-6 col-md-4 col-lg-2">
         <div className="card-stitch p-3 h-100">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-warning fw-semibold uppercase" style={{ fontSize: '11px' }}>High Priority</small>
-            <div className="rounded-2 bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+            <small className="text-warning fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>High Priority</small>
+            <div className="rounded-3 bg-warning bg-opacity-15 text-warning d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
               <span className="material-symbols-outlined fs-5">schedule</span>
             </div>
           </div>
@@ -81,8 +81,8 @@ export const StatsOverview: React.FC<StatsProps> = ({
       <div className="col-6 col-md-4 col-lg-2">
         <div className="card-stitch p-3 h-100">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-info fw-semibold uppercase" style={{ fontSize: '11px' }}>AI Routing</small>
-            <div className="rounded-2 bg-primary bg-opacity-15 text-info d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+            <small className="text-primary fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>AI Routing</small>
+            <div className="rounded-3 bg-primary bg-opacity-20 text-info d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
               <span className="material-symbols-outlined fs-5">auto_awesome</span>
             </div>
           </div>
@@ -97,8 +97,8 @@ export const StatsOverview: React.FC<StatsProps> = ({
       <div className="col-6 col-md-4 col-lg-2">
         <div className="card-stitch p-3 h-100">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-warning fw-semibold uppercase" style={{ fontSize: '11px' }}>Low Stock</small>
-            <div className="rounded-2 bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+            <small className="text-warning fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Low Stock</small>
+            <div className="rounded-3 bg-warning bg-opacity-15 text-warning d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
               <span className="material-symbols-outlined fs-5">inventory_2</span>
             </div>
           </div>
@@ -113,8 +113,8 @@ export const StatsOverview: React.FC<StatsProps> = ({
       <div className="col-6 col-md-4 col-lg-2">
         <div className="card-stitch p-3 h-100">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-success fw-semibold uppercase" style={{ fontSize: '11px' }}>Occupancy</small>
-            <div className="rounded-2 bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+            <small className="text-success fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Occupancy</small>
+            <div className="rounded-3 bg-success bg-opacity-15 text-success d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
               <span className="material-symbols-outlined fs-5">hotel</span>
             </div>
           </div>
