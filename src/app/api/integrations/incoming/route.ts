@@ -10,31 +10,64 @@ export async function POST(request: Request) {
     let senderPhone = '';
     let source = 'API';
 
+    let targetPhone = '';
+    let jsonPropertyId = '';
+
     // 1. Parse incoming payload format
     if (contentType.includes('application/x-www-form-urlencoded')) {
       // Parse Twilio standard urlencoded webhook post
       const formData = await request.formData();
       messageText = formData.get('Body') as string || '';
       senderPhone = formData.get('From') as string || '';
+      targetPhone = formData.get('To') as string || '';
       source = senderPhone.startsWith('whatsapp:') ? 'WHATSAPP' : 'SMS';
       // Normalize whatsapp prefix if present
       senderPhone = senderPhone.replace('whatsapp:', '');
+      targetPhone = targetPhone.replace('whatsapp:', '').trim();
     } else {
       // Parse standard JSON request payload (PMS, IoT, or external APIs)
       const json = await request.json();
       messageText = json.messageText || json.message || '';
       senderPhone = json.guestPhone || json.phone || '';
+      targetPhone = json.to || json.To || json.targetPhone || json.propertyPhone || '';
+      jsonPropertyId = json.propertyId || '';
       source = json.source || 'API';
+      if (targetPhone) {
+        targetPhone = targetPhone.replace('whatsapp:', '').trim();
+      }
     }
 
     if (!messageText) {
       return NextResponse.json({ error: 'Missing request payload text / Body.' }, { status: 400 });
     }
 
-    // 2. Resolve default active property
-    const property = await db.property.findFirst();
+    // 2. Resolve property by target phone number or explicit propertyId
+    let property = null;
+    if (jsonPropertyId) {
+      property = await db.property.findUnique({
+        where: { id: jsonPropertyId },
+      });
+    }
+
+    if (!property && targetPhone) {
+      property = await db.property.findFirst({
+        where: {
+          OR: [
+            { twilioWhatsappNumber: targetPhone },
+            { twilioSmsNumber: targetPhone },
+            { twilioPhoneNumber: targetPhone },
+            { twilioWhatsappNumber: `whatsapp:${targetPhone}` },
+            { twilioSmsNumber: `whatsapp:${targetPhone}` },
+          ],
+        },
+      });
+    }
+
     if (!property) {
-      return NextResponse.json({ error: 'Property not configured.' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Property not found for target phone number or ID.' },
+        { status: 404 }
+      );
     }
 
     let resolvedRoomNumber = 'Unknown';

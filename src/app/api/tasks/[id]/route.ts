@@ -4,6 +4,7 @@ import { TaskPriority, TaskStatus } from '@prisma/client';
 
 interface ManagerOverrideBody {
   departmentId?: string;
+  assignedUserId?: string | null;
   priority?: TaskPriority;
   dueDate?: string;
   status?: TaskStatus;
@@ -16,12 +17,12 @@ export async function PUT(
   try {
     const { id } = await params;
     const body: ManagerOverrideBody = await request.json();
-    const { departmentId, priority, dueDate, status } = body;
+    const { departmentId, assignedUserId, priority, dueDate, status } = body;
 
     // Validate at least one field is being updated
-    if (!departmentId && !priority && !dueDate && !status) {
+    if (!departmentId && assignedUserId === undefined && !priority && !dueDate && !status) {
       return NextResponse.json(
-        { error: 'At least one field (departmentId, priority, dueDate, status) must be provided.' },
+        { error: 'At least one field (departmentId, assignedUserId, priority, dueDate, status) must be provided.' },
         { status: 400 }
       );
     }
@@ -43,10 +44,10 @@ export async function PUT(
       );
     }
 
-    // Fetch the existing task to resolve propertyId and detect department change
+    // Fetch the existing task to resolve propertyId and detect department / assignee changes
     const existingTask = await db.task.findUnique({
       where: { id },
-      include: { department: true },
+      include: { department: true, assignedUser: true },
     });
 
     if (!existingTask) {
@@ -56,16 +57,19 @@ export async function PUT(
     const propertyId = existingTask.propertyId;
     const previousDepartmentId = existingTask.departmentId;
     const isDepartmentChanging = departmentId && departmentId !== previousDepartmentId;
+    const isAssigneeChanging = assignedUserId !== undefined && assignedUserId !== existingTask.assignedUserId;
 
     // Build the update payload
     const updateData: {
       departmentId?: string;
+      assignedUserId?: string | null;
       priority?: TaskPriority;
       dueDate?: Date;
       status?: TaskStatus;
     } = {};
 
     if (departmentId) updateData.departmentId = departmentId;
+    if (assignedUserId !== undefined) updateData.assignedUserId = assignedUserId;
     if (priority) updateData.priority = priority;
     if (dueDate) updateData.dueDate = new Date(dueDate);
     if (status) updateData.status = status;
@@ -76,6 +80,7 @@ export async function PUT(
       data: updateData,
       include: {
         department: true,
+        assignedUser: true,
         room: true,
       },
     });
@@ -87,6 +92,11 @@ export async function PUT(
         `department reassigned from "${existingTask.department.name}" to "${updatedTask.department.name}"`
       );
     }
+    if (isAssigneeChanging) {
+      const prevAssignee = existingTask.assignedUser?.name || 'Unassigned';
+      const newAssignee = updatedTask.assignedUser?.name || 'Unassigned';
+      changesSummary.push(`assignee changed from "${prevAssignee}" to "${newAssignee}"`);
+    }
     if (priority) changesSummary.push(`priority overridden to ${priority}`);
     if (dueDate) changesSummary.push(`dueDate extended to ${new Date(dueDate).toISOString()}`);
     if (status) changesSummary.push(`status set to ${status}`);
@@ -95,7 +105,7 @@ export async function PUT(
     await db.auditLog.create({
       data: {
         propertyId,
-        action: 'TASK_MANAGER_OVERRIDE',
+        action: isDepartmentChanging || isAssigneeChanging ? 'TASK_REASSIGNED' : 'TASK_MANAGER_OVERRIDE',
         entityType: 'TASK',
         entityId: id,
         details: `Manager override on task "${updatedTask.title}": ${changesSummary.join('; ')}.`,

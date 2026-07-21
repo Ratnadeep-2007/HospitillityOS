@@ -7,15 +7,35 @@ export async function POST(request: Request) {
   try {
     const simData = await request.json();
     
-    // Resolve property ID (default to first active property)
+    // Resolve property ID by explicit propertyId or metadata phone number
     let propertyId = simData.propertyId;
-    if (!propertyId) {
-      const defaultProp = await db.property.findFirst();
-      if (!defaultProp) {
-        return NextResponse.json({ error: 'Property not found. Seed database first.' }, { status: 400 });
-      }
-      propertyId = defaultProp.id;
+    let targetPhone = simData.metadata?.to || simData.metadata?.targetPhone || simData.metadata?.twilioNumber || '';
+    if (targetPhone) {
+      targetPhone = targetPhone.replace('whatsapp:', '').trim();
     }
+
+    let property = null;
+    if (propertyId) {
+      property = await db.property.findUnique({ where: { id: propertyId } });
+    } else if (targetPhone) {
+      property = await db.property.findFirst({
+        where: {
+          OR: [
+            { twilioWhatsappNumber: targetPhone },
+            { twilioSmsNumber: targetPhone },
+            { twilioPhoneNumber: targetPhone },
+          ],
+        },
+      });
+    }
+
+    if (!property) {
+      return NextResponse.json(
+        { error: 'Property ID or valid target phone number is required.' },
+        { status: 400 }
+      );
+    }
+    propertyId = property.id;
 
     console.log(`[Simulator Webhook] Received ${simData.type} for Property: ${propertyId}`);
 

@@ -40,6 +40,9 @@ async function main() {
       address: '100 Ocean Breeze Drive, Paradise Valley',
       timezone: 'Asia/Kolkata',
       status: PropertyStatus.ACTIVE,
+      twilioWhatsappNumber: '+15550192834',
+      twilioSmsNumber: '+15550192834',
+      twilioPhoneNumber: '+15550192834',
     },
   });
   console.log(`🏠 Created Property: ${property.name} (${property.id})`);

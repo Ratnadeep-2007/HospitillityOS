@@ -104,6 +104,10 @@ model Property {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
+  twilioWhatsappNumber String?  @unique
+  twilioSmsNumber      String?  @unique
+  twilioPhoneNumber    String?  @unique
+
   departments        Department[]
   users              User[]
   guests             Guest[]

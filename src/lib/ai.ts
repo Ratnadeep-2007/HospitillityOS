@@ -64,9 +64,13 @@ export async function extractTasksFromText(text: string, context?: { roomNumber?
       title = textLower.includes('ac') || textLower.includes('chiller') ? 'Inspect HVAC AC Chiller unit' : textLower.includes('leak') ? 'Repair Water Pipe Leak' : 'General Maintenance Check';
       priority = 'URGENT';
       dueInMinutes = 45;
-    } else if (textLower.includes('food') || textLower.includes('drink') || textLower.includes('water') || textLower.includes('coffee') || textLower.includes('dinner') || textLower.includes('breakfast') || textLower.includes('lunch') || textLower.includes('tea') || textLower.includes('menu')) {
+    } else if (textLower.includes('table') || textLower.includes('reservation') || textLower.includes('restaurant') || textLower.includes('dining') || textLower.includes('food') || textLower.includes('drink') || textLower.includes('water') || textLower.includes('coffee') || textLower.includes('dinner') || textLower.includes('breakfast') || textLower.includes('lunch') || textLower.includes('tea') || textLower.includes('menu')) {
       departmentName = 'Restaurant';
-      title = textLower.includes('water') ? 'Deliver Sparkling Water Bottling' : 'Deliver Room Service Order';
+      title = (textLower.includes('table') || textLower.includes('reservation') || textLower.includes('restaurant')) 
+        ? 'Book Table Reservation' 
+        : textLower.includes('water') 
+        ? 'Deliver Sparkling Water' 
+        : 'Deliver Room Service Order';
       priority = 'MEDIUM';
       dueInMinutes = 20;
     } else if (textLower.includes('safety') || textLower.includes('patrol') || textLower.includes('gate') || textLower.includes('intruder') || textLower.includes('key') || textLower.includes('card') || textLower.includes('lost')) {

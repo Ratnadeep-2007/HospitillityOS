@@ -1,0 +1,73 @@
+name: HospitalityOS CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build & RLS Security Test Suite
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: hospitalityos_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Code Quality & Lint Check
+        run: npm run lint
+
+      - name: Next.js Production Build
+        run: npm run build
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/hospitalityos_test?schema=public"
+
+      - name: Apply Database Schema to Test Postgres Container
+        run: npx prisma db push --skip-generate
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/hospitalityos_test?schema=public"
+
+      - name: Run Multi-Tenant RLS Test Suite
+        run: npx tsx prisma/test-rls.ts
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/hospitalityos_test?schema=public"
+
+      - name: Run Webhook Property Routing Test Suite
+        run: npx tsx prisma/test-incoming-routing.ts
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/hospitalityos_test?schema=public"
+
+      - name: Run Restaurant Department End-to-End Test
+        run: npx tsx prisma/test-restaurant-routing.ts
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/hospitalityos_test?schema=public"
+
+      - name: Run Manager Task Reassignment & Audit Log Test
+        run: npx tsx prisma/test-manager-reassign.ts
+        env:
+          DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/hospitalityos_test?schema=public"
