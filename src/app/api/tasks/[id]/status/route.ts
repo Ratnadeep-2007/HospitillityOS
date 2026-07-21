@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../../lib/db';
 import { TaskStatus } from '@prisma/client';
-import { inngest } from '../../../../../lib/inngest';
+import { sendInngestEvent } from '../../../../../lib/inngest';
 
 const ALLOWED_STATUSES: TaskStatus[] = ['IN_PROGRESS', 'PENDING_APPROVAL', 'COMPLETED', 'ESCALATED', 'CANCELLED'];
 
@@ -98,7 +98,7 @@ export async function POST(
 
       // Send event to Inngest for event-driven workflow chaining
       try {
-        await inngest.send({
+        await sendInngestEvent({
           name: 'task.completed',
           data: {
             taskId: task.id,

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/db';
-import { inngest } from '../../../../lib/inngest';
+import { sendInngestEvent } from '../../../../lib/inngest';
 import { validateTwilioSignature } from '../../../../lib/twilio';
 
 // Real-world Omnichannel & Twilio integration API gateway endpoint
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
     });
 
     // 6. Trigger Inngest background event-driven pipeline
-    await inngest.send({
+    await sendInngestEvent({
       name: 'guest.request.created',
       data: {
         propertyId: property.id,

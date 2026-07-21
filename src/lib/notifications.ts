@@ -1,5 +1,5 @@
 import { db } from './db';
-import { inngest } from './inngest';
+import { sendInngestEvent } from './inngest';
 import { NotificationChannel } from '@prisma/client';
 import { sendTwilioMessage } from './twilio';
 
@@ -50,7 +50,7 @@ export async function sendNotification(params: {
 
   // 3. Send event to Inngest background queue
   try {
-    await inngest.send({
+    await sendInngestEvent({
       name: 'notification.created',
       data: {
         notificationId: notif.id,

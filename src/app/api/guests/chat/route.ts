@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/db';
-import { inngest } from '../../../../lib/inngest';
+import { sendInngestEvent } from '../../../../lib/inngest';
 import { withApiTenantContext } from '../../../../lib/api-helper';
 
 export async function POST(request: Request) {
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       // 4. Trigger Inngest if message is simulated from Guest
       if (isGuestSource) {
         try {
-          await inngest.send({
+          await sendInngestEvent({
             name: 'guest.request.created',
             data: {
               propertyId,

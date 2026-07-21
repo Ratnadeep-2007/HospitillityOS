@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { db } from '../../../../lib/db';
-import { inngest } from '../../../../lib/inngest';
+import { sendInngestEvent } from '../../../../lib/inngest';
 
 export async function POST(request: Request) {
   try {
@@ -180,7 +180,7 @@ export async function POST(request: Request) {
     eventData.eventId = dbEvent.id;
 
     // Send event to Inngest to trigger the worker function
-    await inngest.send({
+    await sendInngestEvent({
       name: eventName,
       data: eventData,
     });

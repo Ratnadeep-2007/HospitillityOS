@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/db';
-import { inngest } from '../../../../lib/inngest';
+import { sendInngestEvent } from '../../../../lib/inngest';
 
 /**
  * Enterprise Property Management System (PMS) Integration Gateway
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
         });
 
         // Trigger Inngest workflow
-        await inngest.send({
+        await sendInngestEvent({
           name: 'booking.created',
           data: {
             propertyId: property.id,

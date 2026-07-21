@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/db';
-import { inngest } from '../../../lib/inngest';
+import { sendInngestEvent } from '../../../lib/inngest';
 
 export async function POST(request: Request) {
   try {
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     });
 
     // Send event to Inngest to trigger the worker function
-    await inngest.send({
+    await sendInngestEvent({
       name: 'purchase.request.created',
       data: {
         propertyId,
