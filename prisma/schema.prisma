@@ -1,0 +1,406 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum PropertyType {
+  HOTEL
+  RESORT
+  VILLA
+  HOMESTAY
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+  SUPERVISOR
+  RECEPTIONIST
+  HOUSEKEEPER
+  CHEF
+  TECHNICIAN
+  DRIVER
+  STAFF
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  DIRTY
+  MAINTENANCE
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+}
+
+enum WorkflowStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  PENDING_APPROVAL
+  COMPLETED
+  CANCELLED
+  ESCALATED
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  EMAIL
+  WHATSAPP
+  SMS
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+}
+
+enum AIRecommendationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Property {
+  id        String         @id @default(uuid())
+  name      String
+  type      PropertyType
+  address   String
+  timezone  String         @default("UTC")
+  status    PropertyStatus @default(ACTIVE)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  departments        Department[]
+  users              User[]
+  guests             Guest[]
+  rooms              Room[]
+  bookings           Booking[]
+  workflows          Workflow[]
+  tasks              Task[]
+  events             Event[]
+  notifications      Notification[]
+  sops               SOP[]
+  assets             Asset[]
+  inventoryItems     InventoryItem[]
+  vendors            Vendor[]
+  comments           Comment[]
+  attachments        Attachment[]
+  auditLogs          AuditLog[]
+  aiRecommendations  AIRecommendation[]
+}
+
+model Department {
+  id          String   @id @default(uuid())
+  propertyId  String
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  property          Property           @relation(fields: [propertyId], references: [id])
+  users             User[]
+  tasks             Task[]
+  inventoryItems    InventoryItem[]
+  sopTaskTemplates  SOPTaskTemplate[]
+}
+
+model User {
+  id           String     @id @default(uuid())
+  propertyId   String
+  departmentId String
+  name         String
+  email        String     @unique
+  phone        String?
+  passwordHash String
+  role         UserRole
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  property         Property       @relation(fields: [propertyId], references: [id])
+  department       Department     @relation(fields: [departmentId], references: [id])
+  assignedTasks    Task[]         @relation("AssignedUser")
+  createdTasks     Task[]         @relation("CreatedUser")
+  comments         Comment[]
+  attachments      Attachment[]   @relation("UploadedBy")
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+}
+
+model Guest {
+  id            String   @id @default(uuid())
+  propertyId    String
+  name          String
+  phone         String?
+  email         String?
+  preferences   String?
+  loyaltyStatus String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  property Property  @relation(fields: [propertyId], references: [id])
+  bookings Booking[]
+}
+
+model Room {
+  id         String     @id @default(uuid())
+  propertyId String
+  roomNumber String
+  roomType   String
+  status     RoomStatus @default(AVAILABLE)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  property Property  @relation(fields: [propertyId], references: [id])
+  bookings Booking[]
+  tasks    Task[]
+}
+
+model Booking {
+  id           String        @id @default(uuid())
+  propertyId   String
+  guestId      String
+  roomId       String
+  checkIn      DateTime
+  checkOut     DateTime
+  status       BookingStatus @default(CONFIRMED)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  property  Property   @relation(fields: [propertyId], references: [id])
+  guest     Guest      @relation(fields: [guestId], references: [id])
+  room      Room       @relation(fields: [roomId], references: [id])
+  workflows Workflow[]
+}
+
+model Workflow {
+  id         String         @id @default(uuid())
+  propertyId String
+  bookingId  String?
+  type       String         // e.g. "GUEST_REQUEST", "SOP", "MAINTENANCE"
+  status     WorkflowStatus @default(PENDING)
+  startedAt  DateTime       @default(now())
+  completedAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  property          Property           @relation(fields: [propertyId], references: [id])
+  booking           Booking?           @relation(fields: [bookingId], references: [id])
+  tasks             Task[]
+  events            Event[]
+  aiRecommendations AIRecommendation[]
+}
+
+model Task {
+  id           String       @id @default(uuid())
+  propertyId   String
+  workflowId   String
+  departmentId String
+  assignedUserId String?
+  createdUserId String?
+  roomId       String?
+  title        String
+  description  String?
+  priority     TaskPriority @default(MEDIUM)
+  status       TaskStatus   @default(PENDING)
+  dueDate      DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  property      Property       @relation(fields: [propertyId], references: [id])
+  workflow      Workflow       @relation(fields: [workflowId], references: [id])
+  department    Department     @relation(fields: [departmentId], references: [id])
+  assignedUser  User?          @relation("AssignedUser", fields: [assignedUserId], references: [id])
+  createdUser   User?          @relation("CreatedUser", fields: [createdUserId], references: [id])
+  room          Room?          @relation(fields: [roomId], references: [id])
+  comments      Comment[]
+  attachments   Attachment[]
+  notifications Notification[]
+}
+
+model Event {
+  id         String   @id @default(uuid())
+  propertyId String
+  type       String   // e.g. "BOOKING_CREATED", "GUEST_REQUEST", "LOW_INVENTORY"
+  source     String   // e.g. "WHATSAPP", "PMS", "SYSTEM", "MANUAL"
+  timestamp  DateTime @default(now())
+  metadata   Json     // Dynamic JSON payload of the event
+  processed  Boolean  @default(false)
+  workflowId String?
+  createdAt  DateTime @default(now())
+
+  property          Property           @relation(fields: [propertyId], references: [id])
+  workflow          Workflow?          @relation(fields: [workflowId], references: [id])
+  aiRecommendations AIRecommendation[]
+}
+
+model Notification {
+  id         String              @id @default(uuid())
+  propertyId String
+  taskId     String?
+  userId     String
+  channel    NotificationChannel
+  recipient  String
+  status     NotificationStatus  @default(PENDING)
+  message    String
+  createdAt  DateTime            @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+  task     Task?    @relation(fields: [taskId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model SOP {
+  id         String   @id @default(uuid())
+  propertyId String
+  name       String
+  schedule   String   // Cron expression or description
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  property         Property          @relation(fields: [propertyId], references: [id])
+  sopTaskTemplates SOPTaskTemplate[]
+}
+
+model SOPTaskTemplate {
+  id           String       @id @default(uuid())
+  sopId        String
+  departmentId String
+  title        String
+  description  String?
+  priority     TaskPriority @default(MEDIUM)
+
+  sop        SOP        @relation(fields: [sopId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+}
+
+model Asset {
+  id         String   @id @default(uuid())
+  propertyId String
+  name       String
+  category   String
+  status     String   // e.g. "OPERATIONAL", "MAINTENANCE_REQUIRED", "DOWN"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+model InventoryItem {
+  id           String   @id @default(uuid())
+  propertyId   String
+  departmentId String
+  name         String
+  unit         String   // e.g. "litres", "units", "kg"
+  quantity     Float
+  minimumLevel Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  property   Property   @relation(fields: [propertyId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+}
+
+model Vendor {
+  id          String   @id @default(uuid())
+  propertyId  String
+  name        String
+  category    String
+  contactInfo String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+model Comment {
+  id         String   @id @default(uuid())
+  propertyId String
+  taskId     String?
+  userId     String
+  message    String
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+  task     Task?    @relation(fields: [taskId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model Attachment {
+  id               String   @id @default(uuid())
+  propertyId       String
+  taskId           String?
+  fileUrl          String
+  uploadedByUserId String
+  createdAt        DateTime @default(now())
+
+  property   Property @relation(fields: [propertyId], references: [id])
+  task       Task?    @relation(fields: [taskId], references: [id])
+  uploadedBy User     @relation("UploadedBy", fields: [uploadedByUserId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  propertyId String
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  details    String?
+  timestamp  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+  user     User?    @relation(fields: [userId], references: [id])
+}
+
+model AIRecommendation {
+  id         String                 @id @default(uuid())
+  propertyId String
+  eventId    String?
+  workflowId String?
+  type       String                 // e.g. "STAFF_MOVE", "INVENTORY_BUY"
+  confidence Float
+  reason     String
+  status     AIRecommendationStatus @default(PENDING)
+  createdAt  DateTime               @default(now())
+
+  property Property  @relation(fields: [propertyId], references: [id])
+  event    Event?     @relation(fields: [eventId], references: [id])
+  workflow Workflow?  @relation(fields: [workflowId], references: [id])
+}
