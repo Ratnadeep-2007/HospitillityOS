@@ -93,12 +93,14 @@ export interface AuditLogItem {
 
 export interface DeptItem {
   id: string;
+  propertyId?: string;
   name: string;
   description?: string;
 }
 
 export interface RoomItem {
   id: string;
+  propertyId?: string;
   roomNumber: string;
   roomType: string;
   status: string;

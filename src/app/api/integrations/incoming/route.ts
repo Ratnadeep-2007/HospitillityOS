@@ -63,6 +63,12 @@ export async function POST(request: Request) {
       });
     }
 
+    if (!property && !targetPhone && !jsonPropertyId) {
+      property = await db.property.findFirst({
+        where: { status: 'ACTIVE' },
+      });
+    }
+
     if (!property) {
       return NextResponse.json(
         { error: 'Property not found for target phone number or ID.' },

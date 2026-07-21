@@ -29,6 +29,12 @@ export async function POST(request: Request) {
       });
     }
 
+    if (!property && !propertyId && !targetPhone) {
+      property = await db.property.findFirst({
+        where: { status: 'ACTIVE' },
+      });
+    }
+
     if (!property) {
       return NextResponse.json(
         { error: 'Property ID or valid target phone number is required.' },

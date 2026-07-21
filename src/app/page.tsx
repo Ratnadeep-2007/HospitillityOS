@@ -211,9 +211,19 @@ export default function Dashboard() {
     try {
       const isWhatsapp = simType === 'whatsapp_message';
       const endpoint = isWhatsapp ? '/api/integrations/incoming' : '/api/integrations/mock';
+      const currentPropId = availableDepts[0]?.propertyId;
       const bodyData = isWhatsapp
-        ? { messageText: waMessage, guestPhone: waName === 'Arthur Pendragon' ? '+15550192834' : '+15550000000', source: 'WHATSAPP' }
-        : payload;
+        ? {
+            messageText: waMessage,
+            guestPhone: waName === 'Arthur Pendragon' ? '+15550192834' : '+15550000000',
+            targetPhone: '+15550192834',
+            propertyId: currentPropId,
+            source: 'WHATSAPP',
+          }
+        : {
+            ...payload,
+            propertyId: currentPropId,
+          };
 
       const res = await fetch(endpoint, {
         method: 'POST',
