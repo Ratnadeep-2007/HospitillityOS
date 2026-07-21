@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Home, Shield, ChevronDown, User } from 'lucide-react';
 import { UserAccount } from '../../types/dashboard';
 
 interface HeaderProps {
@@ -26,85 +25,101 @@ export const Header: React.FC<HeaderProps> = ({
   handleEmployeeSwitch,
 }) => {
   return (
-    <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo & Brand */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-yellow-400 flex items-center justify-center shadow-lg shadow-orange-500/20">
-              <Home className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+    <header className="stitch-navbar sticky-top py-2 px-3 shadow-sm">
+      <div className="container-fluid d-flex align-items-center justify-content-between">
+        {/* Brand & Property Context */}
+        <div className="d-flex align-items-center gap-3">
+          <div
+            className="d-flex align-items-center justify-content-center rounded-3 bg-primary text-white shadow-sm"
+            style={{ width: '42px', height: '42px', background: 'linear-gradient(135deg, #0284c7 0%, #7c3aed 100%)' }}
+          >
+            <span className="material-symbols-outlined fs-4 text-white">domain</span>
+          </div>
+          <div>
+            <div className="d-flex align-items-center gap-2">
+              <span className="fw-bold fs-5 text-white font-display tracking-tight">HospitalityOS</span>
+              <span className="badge badge-stitch-indigo text-uppercase px-2 py-1" style={{ fontSize: '10px' }}>
+                Enterprise Property Hub
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-lg text-white tracking-tight">HospitalityOS</span>
-                <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                  Single Property
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">Grand Horizon Resort & Spa</p>
-            </div>
+            <small className="text-secondary" style={{ fontSize: '11px' }}>
+              Grand Horizon Resort & Spa • Property ID: prop-gh-01
+            </small>
+          </div>
+        </div>
+
+        {/* Status & Active User Account Switcher */}
+        <div className="d-flex align-items-center gap-3">
+          {/* API Health Status */}
+          <div className="d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-dark border border-secondary border-opacity-25">
+            <span
+              className={`rounded-circle ${apiOnline ? 'bg-success' : 'bg-warning'}`}
+              style={{ width: '8px', height: '8px', boxShadow: apiOnline ? '0 0 8px #10b981' : 'none' }}
+            />
+            <small className="text-light font-medium" style={{ fontSize: '12px' }}>
+              {apiOnline ? 'Live Postgres & Event Bus' : 'Simulation Fallback'}
+            </small>
           </div>
 
-          {/* System Status & Session Selector */}
-          <div className="flex items-center gap-4">
-            {/* API Status Indicator */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs">
-              <span className={`w-2 h-2 rounded-full ${apiOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-              <span className="text-slate-300 font-medium">{apiOnline ? 'Postgres RLS Online' : 'Simulation Mode'}</span>
-            </div>
-
-            {/* Active User Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowSessionMenu(!showSessionMenu)}
-                className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-slate-600 transition-all text-left group"
+          {/* User Account Dropdown */}
+          <div className="position-relative">
+            <button
+              onClick={() => setShowSessionMenu(!showSessionMenu)}
+              className="btn btn-outline-secondary d-flex align-items-center gap-2 border-opacity-25 bg-dark text-white rounded-3 px-3 py-1.5"
+              style={{ borderStyle: 'dashed' }}
+            >
+              <div
+                className="rounded-circle bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center text-light"
+                style={{ width: '32px', height: '32px' }}
               >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-slate-700 to-slate-600 flex items-center justify-center text-slate-200">
-                  <User className="w-4 h-4" />
+                <span className="material-symbols-outlined fs-5">account_circle</span>
+              </div>
+              <div className="text-start d-none d-sm-block">
+                <div className="fw-semibold text-white font-display" style={{ fontSize: '12px' }}>
+                  {currentEmployeeName}
                 </div>
-                <div className="hidden sm:block">
-                  <div className="text-xs font-semibold text-white group-hover:text-amber-400 transition-colors">
-                    {currentEmployeeName}
-                  </div>
-                  <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                    <Shield className="w-3 h-3 text-amber-500" />
-                    <span>{currentUserRole}</span>
-                  </div>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showSessionMenu ? 'rotate-180' : ''}`} />
-              </button>
+                <small className="text-info d-flex align-items-center gap-1" style={{ fontSize: '10px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>admin_panel_settings</span>
+                  {currentUserRole}
+                </small>
+              </div>
+              <span className="material-symbols-outlined text-secondary fs-5 ms-1">expand_more</span>
+            </button>
 
-              {/* Session Switcher Menu */}
-              {showSessionMenu && (
-                <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-2 z-50 divide-y divide-slate-800">
-                  <div className="px-4 py-2">
-                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Switch Active Role / User</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{currentEmployeeEmail}</p>
-                  </div>
-                  <div className="py-1 max-h-64 overflow-y-auto">
-                    {systemEmployees.map((emp) => (
-                      <button
-                        key={emp.id}
-                        onClick={() => handleEmployeeSwitch(emp)}
-                        className={`w-full text-left px-4 py-2.5 hover:bg-slate-800/80 transition-colors flex items-center justify-between ${
-                          currentEmployeeEmail === emp.email ? 'bg-amber-500/10 border-l-2 border-amber-500' : ''
-                        }`}
-                      >
-                        <div>
-                          <p className="text-xs font-medium text-slate-200">{emp.name}</p>
-                          <p className="text-[10px] text-slate-400">{emp.role} • {emp.department}</p>
-                        </div>
-                        {currentEmployeeEmail === emp.email && (
-                          <span className="text-[10px] bg-amber-500/20 text-amber-400 font-semibold px-2 py-0.5 rounded-full">
-                            Active
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+            {/* Dropdown Menu */}
+            {showSessionMenu && (
+              <div
+                className="position-absolute end-0 mt-2 bg-dark border border-secondary border-opacity-25 rounded-3 shadow-lg p-2 z-3"
+                style={{ width: '290px' }}
+              >
+                <div className="px-3 py-2 border-bottom border-secondary border-opacity-25">
+                  <span className="text-uppercase text-secondary fw-bold" style={{ fontSize: '10px', letterSpacing: '0.5px' }}>
+                    Switch Role / User Account
+                  </span>
+                  <div className="text-light text-truncate" style={{ fontSize: '11px' }}>{currentEmployeeEmail}</div>
                 </div>
-              )}
-            </div>
+                <div className="py-1 overflow-y-auto" style={{ maxHeight: '240px' }}>
+                  {systemEmployees.map((emp) => (
+                    <button
+                      key={emp.id}
+                      onClick={() => handleEmployeeSwitch(emp)}
+                      className={`btn w-100 text-start px-3 py-2 rounded-2 d-flex align-items-center justify-content-between ${
+                        currentEmployeeEmail === emp.email ? 'bg-primary bg-opacity-25 text-info fw-semibold' : 'text-light hover-bg-secondary'
+                      }`}
+                      style={{ fontSize: '12px' }}
+                    >
+                      <div>
+                        <div className="fw-medium text-white">{emp.name}</div>
+                        <small className="text-secondary">{emp.role} • {emp.department}</small>
+                      </div>
+                      {currentEmployeeEmail === emp.email && (
+                        <span className="badge badge-stitch-indigo">Active</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

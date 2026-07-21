@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Bed, ShoppingBag, Utensils, Shield, Layers, Plus } from 'lucide-react';
 
 import {
   VendorItem,
@@ -389,7 +388,7 @@ export default function Dashboard() {
   const securityTasks = tasks.filter((t) => t.department?.name?.toLowerCase() === 'security');
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950 pb-12">
+    <div className="min-vh-100 bg-body-tertiary text-light pb-5">
       <Header
         apiOnline={apiOnline}
         currentUserRole={currentUserRole}
@@ -401,7 +400,7 @@ export default function Dashboard() {
         handleEmployeeSwitch={handleEmployeeSwitch}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="container-fluid px-lg-4 pt-4">
         <StatsOverview
           stats={stats}
           highPriorityCount={highPriorityCount}
@@ -438,31 +437,31 @@ export default function Dashboard() {
           triggerSimulation={triggerSimulation}
         />
 
-        {/* Navigation Department Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 border-b border-slate-800 scrollbar-none">
+        {/* Navigation Department Tabs (Bootstrap & Google Stitch) */}
+        <div className="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-4 border-bottom border-secondary border-opacity-25">
           {[
-            { id: 'control', label: 'All Operations Queue', icon: LayoutDashboard },
-            { id: 'reception', label: 'Reception & Front Desk', icon: Bed },
-            { id: 'housekeeping', label: 'Housekeeping', icon: Layers },
-            { id: 'maintenance', label: 'Maintenance', icon: Shield },
-            { id: 'kitchen', label: 'Kitchen & Procurement', icon: ShoppingBag },
-            { id: 'restaurant', label: 'Restaurant & Dining', icon: Utensils },
-            { id: 'security', label: 'Security & Daily SOPs', icon: Shield },
-            { id: 'management', label: 'Management Control', icon: Shield },
+            { id: 'control', label: 'All Operations Queue', icon: 'dashboard' },
+            { id: 'reception', label: 'Reception & Front Desk', icon: 'hotel' },
+            { id: 'housekeeping', label: 'Housekeeping', icon: 'cleaning_services' },
+            { id: 'maintenance', label: 'Maintenance', icon: 'build' },
+            { id: 'kitchen', label: 'Kitchen & Procurement', icon: 'shopping_bag' },
+            { id: 'restaurant', label: 'Restaurant & Dining', icon: 'restaurant' },
+            { id: 'security', label: 'Security & Daily SOPs', icon: 'verified_user' },
+            { id: 'management', label: 'Management Control', icon: 'query_stats' },
           ].map((tab) => {
-            const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`btn btn-sm d-flex align-items-center gap-2 rounded-3 text-nowrap fw-semibold transition-all ${
                   isActive
-                    ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20'
-                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    ? 'btn-stitch-primary shadow-sm'
+                    : 'btn-stitch-outline'
                 }`}
+                style={{ fontSize: '12px' }}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <span className="material-symbols-outlined fs-6">{tab.icon}</span>
                 {tab.label}
               </button>
             );
@@ -471,27 +470,28 @@ export default function Dashboard() {
 
         {/* Tab Views */}
         {activeTab === 'control' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white tracking-wide">All Operations Task Queue ({tasks.length})</h2>
+          <div className="space-y-4">
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h5 className="fw-bold text-white font-display m-0">All Operations Task Queue ({tasks.length})</h5>
               <button
                 onClick={() => setShowTaskModal(true)}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-lg shadow-amber-500/20"
+                className="btn btn-stitch-primary btn-sm d-flex align-items-center gap-2"
               >
-                <Plus className="w-3.5 h-3.5" />
-                Create Operations Task
+                <span className="material-symbols-outlined fs-6">add</span>
+                Create Task
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="row g-3 mb-4">
               {tasks.map((task) => (
-                <TaskItemCard
-                  key={task.id}
-                  task={task}
-                  currentUserRole={currentUserRole}
-                  handleUpdateStatus={handleUpdateStatus}
-                  openOverrideModal={openOverrideModal}
-                />
+                <div key={task.id} className="col-12 col-md-6 col-lg-4">
+                  <TaskItemCard
+                    task={task}
+                    currentUserRole={currentUserRole}
+                    handleUpdateStatus={handleUpdateStatus}
+                    openOverrideModal={openOverrideModal}
+                  />
+                </div>
               ))}
             </div>
 

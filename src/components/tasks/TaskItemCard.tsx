@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle, User, Layers } from 'lucide-react';
 import { TaskItem, DeptItem } from '../../types/dashboard';
 
 interface TaskItemCardProps {
@@ -20,70 +19,73 @@ export const TaskItemCard: React.FC<TaskItemCardProps> = ({
 }) => {
   const isManager = currentUserRole === 'MANAGER' || currentUserRole === 'OWNER' || currentUserRole === 'SUPERVISOR';
 
-  const priorityColor =
+  const priorityBadgeClass =
     task.priority === 'URGENT'
-      ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+      ? 'badge-stitch-rose'
       : task.priority === 'HIGH'
-      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-      : 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      ? 'badge-stitch-violet'
+      : 'badge-stitch-indigo';
 
-  const statusColor =
+  const statusBadgeClass =
     task.status === 'COMPLETED'
-      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+      ? 'badge-stitch-emerald'
       : task.status === 'IN_PROGRESS'
-      ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+      ? 'badge-stitch-indigo'
       : task.status === 'ESCALATED'
-      ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-      : task.status === 'PENDING_APPROVAL'
-      ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-      : 'bg-slate-800 text-slate-400 border-slate-700';
+      ? 'badge-stitch-rose'
+      : 'bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-25 rounded-pill px-2 py-1';
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-all flex flex-col justify-between space-y-3">
+    <div className="card-stitch p-3 d-flex flex-column justify-content-between h-100">
       <div>
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border ${priorityColor}`}>
+        <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+          <span className={`badge ${priorityBadgeClass}`} style={{ fontSize: '10px' }}>
             {task.priority}
           </span>
-          <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border ${statusColor}`}>
+          <span className={`badge ${statusBadgeClass}`} style={{ fontSize: '10px' }}>
             {task.status.replace(/_/g, ' ')}
           </span>
         </div>
 
-        <h3 className="text-sm font-semibold text-white leading-snug line-clamp-2">{task.title}</h3>
+        <h6 className="fw-semibold text-white font-display mb-1 text-truncate-2" style={{ fontSize: '13px', lineHeight: '1.4' }}>
+          {task.title}
+        </h6>
         {task.description && (
-          <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">{task.description}</p>
+          <p className="text-secondary mb-2 text-truncate-2" style={{ fontSize: '11px', lineHeight: '1.4' }}>
+            {task.description}
+          </p>
         )}
       </div>
 
-      <div className="pt-2 border-t border-slate-800/80 space-y-2">
-        <div className="flex items-center justify-between text-xs text-slate-400">
-          <span className="flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5 text-slate-500" />
+      <div className="pt-2 border-top border-secondary border-opacity-25 mt-2">
+        <div className="d-flex align-items-center justify-content-between text-secondary mb-2" style={{ fontSize: '11px' }}>
+          <span className="d-flex align-items-center gap-1">
+            <span className="material-symbols-outlined fs-6 text-info">domain</span>
             {task.department?.name || 'Operations'}
           </span>
           {task.room && (
-            <span className="flex items-center gap-1 text-slate-300 font-medium">
+            <span className="badge badge-stitch-indigo">
               Room {task.room.roomNumber}
             </span>
           )}
         </div>
 
         {task.assignedUser && (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <User className="w-3.5 h-3.5 text-amber-500" />
-            <span>Assigned: <strong className="text-slate-200">{task.assignedUser.name}</strong></span>
+          <div className="d-flex align-items-center gap-1 text-secondary mb-2" style={{ fontSize: '11px' }}>
+            <span className="material-symbols-outlined fs-6 text-warning">person</span>
+            <span>Assigned: <strong className="text-light">{task.assignedUser.name}</strong></span>
           </div>
         )}
 
-        {/* Action Controls */}
-        <div className="flex items-center justify-between gap-2 pt-1">
+        {/* Actions */}
+        <div className="d-flex align-items-center justify-content-between gap-2 pt-1">
           {task.status !== 'COMPLETED' && (
-            <div className="flex items-center gap-1.5 w-full">
+            <div className="w-100">
               {task.status === 'PENDING' && (
                 <button
                   onClick={() => handleUpdateStatus(task.id, 'IN_PROGRESS')}
-                  className="w-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg py-1 text-xs font-semibold transition-colors"
+                  className="btn btn-sm btn-stitch-outline w-100 py-1"
+                  style={{ fontSize: '11px' }}
                 >
                   Start Task
                 </button>
@@ -91,9 +93,10 @@ export const TaskItemCard: React.FC<TaskItemCardProps> = ({
               {task.status === 'IN_PROGRESS' && (
                 <button
                   onClick={() => handleUpdateStatus(task.id, 'COMPLETED')}
-                  className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg py-1 text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+                  className="btn btn-sm btn-stitch-primary w-100 py-1 d-flex align-items-center justify-content-center gap-1"
+                  style={{ fontSize: '11px' }}
                 >
-                  <CheckCircle className="w-3.5 h-3.5" />
+                  <span className="material-symbols-outlined fs-6">check_circle</span>
                   Complete
                 </button>
               )}
@@ -103,9 +106,10 @@ export const TaskItemCard: React.FC<TaskItemCardProps> = ({
           {isManager && openOverrideModal && (
             <button
               onClick={() => openOverrideModal(task)}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
+              className="btn btn-sm btn-stitch-outline text-warning py-1 whitespace-nowrap"
+              style={{ fontSize: '11px' }}
             >
-              Reassign / Override
+              Override
             </button>
           )}
         </div>

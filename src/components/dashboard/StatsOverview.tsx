@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Clock, AlertTriangle, Zap, Activity, Bed } from 'lucide-react';
 
 interface StatsProps {
   stats: {
@@ -29,88 +28,100 @@ export const StatsOverview: React.FC<StatsProps> = ({
   const occupancyPercentage = totalRoomsCount > 0 ? Math.round((occupiedRoomsCount / totalRoomsCount) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <div className="row g-3 mb-4">
       {/* Total Active Tasks */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative overflow-hidden group hover:border-slate-700 transition-all">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-slate-400">Total Tasks</span>
-          <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
-            <Activity className="w-4 h-4" />
+      <div className="col-6 col-md-4 col-lg-2">
+        <div className="card-stitch p-3 h-100">
+          <div className="d-flex align-items-center justify-content-between">
+            <small className="text-secondary fw-semibold uppercase" style={{ fontSize: '11px' }}>Total Tasks</small>
+            <div className="rounded-2 bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+              <span className="material-symbols-outlined fs-5">monitoring</span>
+            </div>
           </div>
-        </div>
-        <div className="mt-3">
-          <span className="text-2xl font-bold text-white tracking-tight">{stats.total}</span>
-          <span className="text-xs text-slate-500 ml-2">Active</span>
+          <div className="mt-3">
+            <span className="fs-3 fw-bold text-white font-display">{stats.total}</span>
+            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Active Queue</small>
+          </div>
         </div>
       </div>
 
       {/* Urgent Escalations */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative overflow-hidden group hover:border-rose-900/50 transition-all">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-rose-400">Escalated</span>
-          <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
-            <AlertTriangle className="w-4 h-4" />
+      <div className="col-6 col-md-4 col-lg-2">
+        <div className="card-stitch p-3 h-100" style={{ borderColor: stats.escalated > 0 ? 'rgba(244, 63, 94, 0.4)' : undefined }}>
+          <div className="d-flex align-items-center justify-content-between">
+            <small className="text-danger fw-semibold uppercase" style={{ fontSize: '11px' }}>SLA Escalated</small>
+            <div className="rounded-2 bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+              <span className="material-symbols-outlined fs-5">warning</span>
+            </div>
           </div>
-        </div>
-        <div className="mt-3">
-          <span className="text-2xl font-bold text-rose-400 tracking-tight">{stats.escalated}</span>
-          <span className="text-xs text-slate-500 ml-2">Urgent SLA</span>
+          <div className="mt-3">
+            <span className="fs-3 fw-bold text-danger font-display">{stats.escalated}</span>
+            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Breached SLA</small>
+          </div>
         </div>
       </div>
 
       {/* High Priority Tasks */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative overflow-hidden group hover:border-amber-900/50 transition-all">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-amber-400">High Priority</span>
-          <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-            <Clock className="w-4 h-4" />
+      <div className="col-6 col-md-4 col-lg-2">
+        <div className="card-stitch p-3 h-100">
+          <div className="d-flex align-items-center justify-content-between">
+            <small className="text-warning fw-semibold uppercase" style={{ fontSize: '11px' }}>High Priority</small>
+            <div className="rounded-2 bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+              <span className="material-symbols-outlined fs-5">schedule</span>
+            </div>
           </div>
-        </div>
-        <div className="mt-3">
-          <span className="text-2xl font-bold text-amber-400 tracking-tight">{highPriorityCount}</span>
-          <span className="text-xs text-slate-500 ml-2">Action needed</span>
+          <div className="mt-3">
+            <span className="fs-3 fw-bold text-warning font-display">{highPriorityCount}</span>
+            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Urgent Action</small>
+          </div>
         </div>
       </div>
 
-      {/* Pending AI Recommendations */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative overflow-hidden group hover:border-purple-900/50 transition-all">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-purple-400">AI Routing</span>
-          <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
-            <Zap className="w-4 h-4" />
+      {/* AI Routing Suggestions */}
+      <div className="col-6 col-md-4 col-lg-2">
+        <div className="card-stitch p-3 h-100">
+          <div className="d-flex align-items-center justify-content-between">
+            <small className="text-info fw-semibold uppercase" style={{ fontSize: '11px' }}>AI Routing</small>
+            <div className="rounded-2 bg-primary bg-opacity-15 text-info d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+              <span className="material-symbols-outlined fs-5">auto_awesome</span>
+            </div>
           </div>
-        </div>
-        <div className="mt-3">
-          <span className="text-2xl font-bold text-purple-300 tracking-tight">{pendingRecsCount}</span>
-          <span className="text-xs text-slate-500 ml-2">Suggestions</span>
+          <div className="mt-3">
+            <span className="fs-3 fw-bold text-info font-display">{pendingRecsCount}</span>
+            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Suggestions</small>
+          </div>
         </div>
       </div>
 
-      {/* Low Inventory Alerts */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative overflow-hidden group hover:border-orange-900/50 transition-all">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-orange-400">Low Stock</span>
-          <div className="w-8 h-8 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center">
-            <AlertTriangle className="w-4 h-4" />
+      {/* Low Inventory */}
+      <div className="col-6 col-md-4 col-lg-2">
+        <div className="card-stitch p-3 h-100">
+          <div className="d-flex align-items-center justify-content-between">
+            <small className="text-warning fw-semibold uppercase" style={{ fontSize: '11px' }}>Low Stock</small>
+            <div className="rounded-2 bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+              <span className="material-symbols-outlined fs-5">inventory_2</span>
+            </div>
           </div>
-        </div>
-        <div className="mt-3">
-          <span className="text-2xl font-bold text-orange-400 tracking-tight">{lowInventoryCount}</span>
-          <span className="text-xs text-slate-500 ml-2">Items low</span>
+          <div className="mt-3">
+            <span className="fs-3 fw-bold text-warning font-display">{lowInventoryCount}</span>
+            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Items Low</small>
+          </div>
         </div>
       </div>
 
       {/* Occupancy Rate */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg backdrop-blur-sm relative overflow-hidden group hover:border-emerald-900/50 transition-all">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-emerald-400">Occupancy</span>
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-            <Bed className="w-4 h-4" />
+      <div className="col-6 col-md-4 col-lg-2">
+        <div className="card-stitch p-3 h-100">
+          <div className="d-flex align-items-center justify-content-between">
+            <small className="text-success fw-semibold uppercase" style={{ fontSize: '11px' }}>Occupancy</small>
+            <div className="rounded-2 bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+              <span className="material-symbols-outlined fs-5">hotel</span>
+            </div>
           </div>
-        </div>
-        <div className="mt-3">
-          <span className="text-2xl font-bold text-emerald-400 tracking-tight">{occupancyPercentage}%</span>
-          <span className="text-xs text-slate-500 ml-2">{occupiedRoomsCount}/{totalRoomsCount} Rooms</span>
+          <div className="mt-3">
+            <span className="fs-3 fw-bold text-success font-display">{occupancyPercentage}%</span>
+            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>{occupiedRoomsCount}/{totalRoomsCount} Rooms</small>
+          </div>
         </div>
       </div>
     </div>
