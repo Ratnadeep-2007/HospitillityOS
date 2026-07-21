@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/purity */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -23,7 +22,6 @@ import {
 
 import { Header } from '../components/dashboard/Header';
 import { StatsOverview } from '../components/dashboard/StatsOverview';
-import { IntegrationSimulator } from '../components/simulator/IntegrationSimulator';
 import { TaskItemCard } from '../components/tasks/TaskItemCard';
 import { TaskCreateModal } from '../components/tasks/TaskCreateModal';
 import { ManagerOverrideModal } from '../components/tasks/ManagerOverrideModal';
@@ -35,6 +33,7 @@ import { RestaurantView } from '../components/departments/RestaurantView';
 import { SecuritySOPView } from '../components/departments/SecuritySOPView';
 import { ManagementControlView } from '../components/departments/ManagementControlView';
 import { NotificationFeed } from '../components/notifications/NotificationFeed';
+import { exportToCSV } from '../lib/csvExport';
 
 const SYSTEM_EMPLOYEES: UserAccount[] = [
   { id: 'usr-1', name: 'Elena Rostova', role: 'OWNER', department: 'Management', email: 'owner@grandhorizon.com' },
@@ -101,20 +100,6 @@ export default function Dashboard() {
   const [overrideDueDate, setOverrideDueDate] = useState('');
   const [overrideLog, setOverrideLog] = useState('');
 
-  // Simulator Inputs
-  const [simType, setSimType] = useState<'whatsapp_message' | 'pms_booking' | 'inventory_alert' | 'maintenance_due'>('whatsapp_message');
-  const [waRoom, setWaRoom] = useState('101');
-  const [waName, setWaName] = useState('Arthur Pendragon');
-  const [waMessage, setWaMessage] = useState('We need 2 fresh pillows and a dental kit, please.');
-  const [pmsRoom, setPmsRoom] = useState('202');
-  const [pmsGuest, setPmsGuest] = useState('Lancelot Du Lac');
-  const [maintAsset, setMaintAsset] = useState('Lobby Central AC Chiller');
-  const [maintType, setMaintType] = useState('AC blowing warm air, room temperature rising');
-  const [invItem, setInvItem] = useState('Hotel Toiletries Kit');
-  const [invLevel, setInvLevel] = useState('45');
-  const [invMin, setInvMin] = useState('100');
-  const [simLog, setSimLog] = useState<string>('');
-
   const [pricingRecommendations, setPricingRecommendations] = useState<PricingRecommendation[]>([
     {
       id: 'pr-rec-1',
@@ -128,7 +113,7 @@ export default function Dashboard() {
   ]);
   const [appliedRatesLog, setAppliedRatesLog] = useState('');
 
-  // 1. Fetch Dashboard Data
+  // Fetch Dashboard Data
   const refreshData = async () => {
     try {
       const res = await fetch('/api/dashboard/stats');
@@ -173,7 +158,7 @@ export default function Dashboard() {
     };
   }, []);
 
-  // 2. Session Switcher
+  // Session Switcher
   const handleEmployeeSwitch = (emp: UserAccount) => {
     setCurrentUserRole(emp.role);
     setCurrentEmployeeName(emp.name);
@@ -189,62 +174,7 @@ export default function Dashboard() {
     setAuditLogs((prev) => [switchAudit, ...prev]);
   };
 
-  // 3. Trigger Simulation Payload
-  const triggerSimulation = async () => {
-    setSimLog('Sending simulated event payload...');
-    const payload: { type: string; metadata: Record<string, unknown> } = {
-      type: simType,
-      metadata: {},
-    };
-
-    if (simType === 'whatsapp_message') {
-      payload.metadata = { roomNumber: waRoom, guestName: waName, messageText: waMessage };
-    } else if (simType === 'pms_booking') {
-      payload.metadata = { roomNumber: pmsRoom, guestName: pmsGuest };
-    } else if (simType === 'inventory_alert') {
-      payload.metadata = { itemName: invItem, currentLevel: parseFloat(invLevel), minimumLevel: parseFloat(invMin) };
-    } else if (simType === 'maintenance_due') {
-      payload.metadata = { assetName: maintAsset, maintenanceType: maintType };
-    }
-
-    try {
-      const isWhatsapp = simType === 'whatsapp_message';
-      const endpoint = isWhatsapp ? '/api/integrations/incoming' : '/api/integrations/mock';
-      const currentPropId = availableDepts[0]?.propertyId;
-      const bodyData = isWhatsapp
-        ? {
-            messageText: waMessage,
-            guestPhone: waName === 'Arthur Pendragon' ? '+15550192834' : '+15550000000',
-            targetPhone: '+15550192834',
-            propertyId: currentPropId,
-            source: 'WHATSAPP',
-          }
-        : {
-            ...payload,
-            propertyId: currentPropId,
-          };
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyData),
-      });
-
-      if (res.ok) {
-        const result = await res.json();
-        setSimLog(`Event Ingested successfully!\nStatus: ${result.status}`);
-        refreshData();
-      } else {
-        const errText = await res.text();
-        setSimLog(`Gateway Error (HTTP ${res.status}): ${errText}`);
-      }
-    } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Unknown connection error';
-      setSimLog(`Delivery Failed: ${errMsg}`);
-    }
-  };
-
-  // 4. Update Task Status
+  // Update Task Status
   const handleUpdateStatus = async (taskId: string, newStatus: string) => {
     try {
       const res = await fetch(`/api/tasks/${taskId}/status`, {
@@ -258,7 +188,7 @@ export default function Dashboard() {
     }
   };
 
-  // 5. Update Room Status
+  // Update Room Status
   const handleRoomStatusChange = async (roomId: string, newStatus: string) => {
     try {
       const res = await fetch(`/api/rooms/${roomId}/status`, {
@@ -272,7 +202,7 @@ export default function Dashboard() {
     }
   };
 
-  // 6. Recommendation & PR Handlers
+  // Recommendation & PR Handlers
   const handleRecAction = async (recId: string, action: string) => {
     try {
       const res = await fetch(`/api/recommendations/${recId}/action`, {
@@ -376,6 +306,20 @@ export default function Dashboard() {
     }
   };
 
+  const handleExportAllTasks = () => {
+    const data = tasks.map((t) => ({
+      TaskID: t.id,
+      Title: t.title,
+      Department: t.department?.name || 'Unassigned',
+      Priority: t.priority,
+      Status: t.status,
+      Room: t.room?.roomNumber || '',
+      AssignedTo: t.assignedUser?.name || 'Unassigned',
+      DueDate: t.dueDate || '',
+    }));
+    exportToCSV('all_operations_tasks', data);
+  };
+
   // Department Filters
   const highPriorityCount = tasks.filter((t) => (t.priority === 'HIGH' || t.priority === 'URGENT') && t.status !== 'COMPLETED').length;
   const occupiedRoomsCount = availableRooms.filter((r) => r.status === 'OCCUPIED').length;
@@ -408,33 +352,6 @@ export default function Dashboard() {
           lowInventoryCount={lowInventoryCount}
           occupiedRoomsCount={occupiedRoomsCount}
           totalRoomsCount={availableRooms.length}
-        />
-
-        <IntegrationSimulator
-          simType={simType}
-          setSimType={setSimType}
-          waRoom={waRoom}
-          setWaRoom={setWaRoom}
-          waName={waName}
-          setWaName={setWaName}
-          waMessage={waMessage}
-          setWaMessage={setWaMessage}
-          pmsRoom={pmsRoom}
-          setPmsRoom={setPmsRoom}
-          pmsGuest={pmsGuest}
-          setPmsGuest={setPmsGuest}
-          maintAsset={maintAsset}
-          setMaintAsset={setMaintAsset}
-          maintType={maintType}
-          setMaintType={setMaintType}
-          invItem={invItem}
-          setInvItem={setInvItem}
-          invLevel={invLevel}
-          setInvLevel={setInvLevel}
-          invMin={invMin}
-          setInvMin={setInvMin}
-          simLog={simLog}
-          triggerSimulation={triggerSimulation}
         />
 
         {/* Navigation Department Tabs (docs/design.md nav-tab-ops) */}
@@ -472,27 +389,43 @@ export default function Dashboard() {
               <h5 className="fw-bold font-display m-0" style={{ color: 'var(--ink)' }}>
                 All Operations Task Queue <span className="text-muted tabular-nums">({tasks.length})</span>
               </h5>
-              <button
-                onClick={() => setShowTaskModal(true)}
-                className="btn btn-brass d-flex align-items-center gap-1"
-              >
-                <span className="material-symbols-outlined fs-6">add</span>
-                Create Task
-              </button>
+              <div className="d-flex align-items-center gap-2">
+                <button
+                  onClick={handleExportAllTasks}
+                  className="btn btn-outline-ops d-flex align-items-center gap-1"
+                >
+                  <span className="material-symbols-outlined fs-6">download</span>
+                  Export Tasks CSV
+                </button>
+                <button
+                  onClick={() => setShowTaskModal(true)}
+                  className="btn btn-brass d-flex align-items-center gap-1"
+                >
+                  <span className="material-symbols-outlined fs-6">add</span>
+                  Create Task
+                </button>
+              </div>
             </div>
 
-            <div className="row g-3 mb-4">
-              {tasks.map((task) => (
-                <div key={task.id} className="col-12 col-md-6 col-lg-4">
-                  <TaskItemCard
-                    task={task}
-                    currentUserRole={currentUserRole}
-                    handleUpdateStatus={handleUpdateStatus}
-                    openOverrideModal={openOverrideModal}
-                  />
-                </div>
-              ))}
-            </div>
+            {tasks.length === 0 ? (
+              <div className="ops-empty-state mb-4">
+                <span className="material-symbols-outlined">task</span>
+                <span className="ops-empty-state-text">No active tasks in the queue right now</span>
+              </div>
+            ) : (
+              <div className="row g-3 mb-4">
+                {tasks.map((task) => (
+                  <div key={task.id} className="col-12 col-md-6 col-lg-4">
+                    <TaskItemCard
+                      task={task}
+                      currentUserRole={currentUserRole}
+                      handleUpdateStatus={handleUpdateStatus}
+                      openOverrideModal={openOverrideModal}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             <NotificationFeed notifications={notifications} />
           </div>

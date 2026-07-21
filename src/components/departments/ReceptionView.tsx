@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { MessageSquare, Plus, Clock, User, CheckCircle } from 'lucide-react';
 import { GuestItem, GuestEventItem, TaskItem } from '../../types/dashboard';
+import { exportToCSV } from '../../lib/csvExport';
 
 interface ReceptionViewProps {
   guests: GuestItem[];
@@ -19,131 +19,180 @@ export const ReceptionView: React.FC<ReceptionViewProps> = ({
   handleUpdateStatus,
   openTaskModal,
 }) => {
+  const handleExportGuests = () => {
+    const data = guests.map((g) => ({
+      ID: g.id,
+      Name: g.name,
+      Phone: g.phone || '',
+      Email: g.email || '',
+      LoyaltyStatus: g.loyaltyStatus || 'Standard',
+      Preferences: g.preferences || '',
+      Room: g.bookings?.[0]?.room?.roomNumber || 'Unassigned',
+    }));
+    exportToCSV('reception_registered_guests', data);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="d-flex flex-column gap-4">
+      {/* Header Bar */}
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
         <div>
-          <h2 className="text-lg font-bold text-white tracking-wide">Reception & Front Desk Operations</h2>
-          <p className="text-xs text-slate-400">Guest arrivals, live messaging requests, and reception task queue</p>
+          <h4 className="fw-bold font-display m-0" style={{ color: 'var(--ink)' }}>Reception & Front Desk Operations</h4>
+          <p className="text-muted small mb-0">Guest arrivals, live messaging requests, and front desk coordination queue</p>
         </div>
-        <button
-          onClick={openTaskModal}
-          className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-lg shadow-amber-500/20"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          New Front Desk Task
-        </button>
+        <div className="d-flex align-items-center gap-2">
+          <button onClick={handleExportGuests} className="btn btn-outline-ops d-flex align-items-center gap-1">
+            <span className="material-symbols-outlined fs-6">download</span>
+            Export CSV
+          </button>
+          <button onClick={openTaskModal} className="btn btn-brass d-flex align-items-center gap-1">
+            <span className="material-symbols-outlined fs-6">add</span>
+            New Front Desk Task
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="row g-4">
         {/* Active Guests Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <User className="w-4 h-4 text-amber-400" />
-              Checked-In Guests
-            </h3>
-            <span className="text-xs text-slate-400 font-mono">{guests.length} Registered</span>
-          </div>
+        <div className="col-12 col-lg-6">
+          <div className="ops-card p-3.5 h-100 d-flex flex-column gap-3">
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+              <div className="d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined text-secondary fs-5">person</span>
+                <h6 className="fw-bold font-display m-0">Checked-In Guests ({guests.length})</h6>
+              </div>
+              <span className="badge-status-info">Active Stay Memory</span>
+            </div>
 
-          <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-            {guests.map((g) => {
-              const activeBooking = g.bookings?.[0];
-              return (
-                <div key={g.id} className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-3 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white">{g.name}</span>
-                      {g.loyaltyStatus && (
-                        <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold px-1.5 py-0.5 rounded-full">
-                          {g.loyaltyStatus}
-                        </span>
+            {guests.length === 0 ? (
+              <div className="ops-empty-state my-auto">
+                <span className="material-symbols-outlined">person_off</span>
+                <span className="ops-empty-state-text">No active guests checked in right now</span>
+              </div>
+            ) : (
+              <div className="d-flex flex-column gap-2 overflow-y-auto pr-1" style={{ maxHeight: '320px' }}>
+                {guests.map((g) => {
+                  const activeBooking = g.bookings?.[0];
+                  return (
+                    <div key={g.id} className="p-3 border rounded-2 bg-light d-flex align-items-center justify-content-between" style={{ borderColor: 'var(--line)' }}>
+                      <div>
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="fw-bold font-display text-dark">{g.name}</span>
+                          {g.loyaltyStatus && (
+                            <span className="badge-status-attention">{g.loyaltyStatus}</span>
+                          )}
+                        </div>
+                        <p className="text-muted mb-0 mt-1" style={{ fontSize: '11px' }}>
+                          Phone: {g.phone || 'N/A'} • Email: {g.email || 'N/A'}
+                        </p>
+                        {g.preferences && (
+                          <p className="mb-0 mt-1 text-secondary fst-italic" style={{ fontSize: '11px' }}>
+                            Prefers: {g.preferences}
+                          </p>
+                        )}
+                      </div>
+                      {activeBooking?.room && (
+                        <div className="text-end">
+                          <span className="badge-status-ok font-mono">Room {activeBooking.room.roomNumber}</span>
+                          <p className="text-muted mb-0 mt-1" style={{ fontSize: '11px' }}>{activeBooking.room.roomType}</p>
+                        </div>
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      Phone: {g.phone || 'N/A'} • Email: {g.email || 'N/A'}
-                    </p>
-                    {g.preferences && (
-                      <p className="text-[10px] text-amber-300/80 mt-1 italic">
-                        Prefers: {g.preferences}
-                      </p>
-                    )}
-                  </div>
-                  {activeBooking?.room && (
-                    <div className="text-right">
-                      <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg">
-                        Room {activeBooking.room.roomNumber}
-                      </span>
-                      <p className="text-[10px] text-slate-500 mt-1">{activeBooking.room.roomType}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Live Guest Request Feed */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-emerald-400" />
-              Incoming Messaging Gateway Feed
-            </h3>
-            <span className="text-xs text-slate-400 font-mono">{guestEvents.length} Events Logged</span>
-          </div>
-
-          <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-            {guestEvents.map((evt) => (
-              <div key={evt.id} className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-3 space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-emerald-400 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    {evt.source} Request
-                  </span>
-                  <span className="text-[10px] text-slate-500">
-                    {new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                <p className="text-xs text-white font-medium">&quot;{evt.metadata?.messageText || 'Request'}&quot;</p>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
-                  <span>Guest: {evt.metadata?.guestName || 'Walk-in'}</span>
-                  <span>Room: {evt.metadata?.roomNumber || 'Unknown'}</span>
-                </div>
+        <div className="col-12 col-lg-6">
+          <div className="ops-card p-3.5 h-100 d-flex flex-column gap-3">
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+              <div className="d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined text-secondary fs-5">chat</span>
+                <h6 className="fw-bold font-display m-0">Incoming Guest Messaging Feed</h6>
               </div>
-            ))}
+              <span className="badge-status-ok tabular-nums">{guestEvents.length} Events Ingested</span>
+            </div>
+
+            {guestEvents.length === 0 ? (
+              <div className="ops-empty-state my-auto">
+                <span className="material-symbols-outlined">forum</span>
+                <span className="ops-empty-state-text">No guest messages recorded in feed</span>
+              </div>
+            ) : (
+              <div className="d-flex flex-column gap-2 overflow-y-auto pr-1" style={{ maxHeight: '320px' }}>
+                {guestEvents.map((evt) => (
+                  <div key={evt.id} className="p-3 border rounded-2 bg-white d-flex flex-column gap-1" style={{ borderColor: 'var(--line)' }}>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <span className="badge-status-ok font-semibold">
+                        {evt.source} Request
+                      </span>
+                      <span className="text-muted tabular-nums" style={{ fontSize: '10px' }}>
+                        {new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="fw-medium text-dark mb-0 mt-1" style={{ fontSize: '13px' }}>
+                      &quot;{evt.metadata?.messageText || 'Guest request received'}&quot;
+                    </p>
+                    <div className="d-flex align-items-center justify-content-between text-muted mt-1" style={{ fontSize: '11px' }}>
+                      <span>Guest: {evt.metadata?.guestName || 'Walk-in'}</span>
+                      <span className="tabular-nums">Room: {evt.metadata?.roomNumber || 'N/A'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Reception Tasks Queue */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-          <Clock className="w-4 h-4 text-amber-400" />
-          Reception Department Task Queue ({receptionTasks.length})
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {receptionTasks.map((task) => (
-            <div key={task.id} className="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex flex-col justify-between space-y-2">
-              <div>
-                <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="font-semibold text-amber-400 uppercase">{task.priority}</span>
-                  <span className="text-slate-400">{task.status}</span>
-                </div>
-                <h4 className="text-xs font-semibold text-white">{task.title}</h4>
-                <p className="text-[11px] text-slate-400 mt-1">{task.description}</p>
-              </div>
-              {task.status !== 'COMPLETED' && (
-                <button
-                  onClick={() => handleUpdateStatus(task.id, 'COMPLETED')}
-                  className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-md py-1 text-xs font-semibold transition-colors flex items-center justify-center gap-1"
-                >
-                  <CheckCircle className="w-3 h-3" /> Mark Resolved
-                </button>
-              )}
-            </div>
-          ))}
+      <div className="ops-card p-3.5 d-flex flex-column gap-3">
+        <div className="d-flex align-items-center justify-content-between border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+          <div className="d-flex align-items-center gap-2">
+            <span className="material-symbols-outlined text-secondary fs-5">schedule</span>
+            <h6 className="fw-bold font-display m-0">Reception Department Task Queue ({receptionTasks.length})</h6>
+          </div>
         </div>
+
+        {receptionTasks.length === 0 ? (
+          <div className="ops-empty-state">
+            <span className="material-symbols-outlined">task_alt</span>
+            <span className="ops-empty-state-text">No front desk tasks in queue right now</span>
+          </div>
+        ) : (
+          <div className="row g-3">
+            {receptionTasks.map((task) => (
+              <div key={task.id} className="col-12 col-md-6 col-lg-4">
+                <div className={`ops-card p-3 h-100 d-flex flex-column justify-between gap-2 ${
+                  task.priority === 'URGENT' || task.priority === 'HIGH' ? 'status-rail-attention' : 'status-rail-info'
+                }`}>
+                  <div>
+                    <div className="d-flex align-items-center justify-content-between mb-1">
+                      <span className={task.priority === 'HIGH' || task.priority === 'URGENT' ? 'badge-status-attention' : 'badge-status-info'}>
+                        {task.priority}
+                      </span>
+                      <span className="text-muted text-uppercase" style={{ fontSize: '10px' }}>{task.status}</span>
+                    </div>
+                    <h6 className="fw-bold font-display text-dark mb-1">{task.title}</h6>
+                    <p className="text-muted mb-0" style={{ fontSize: '12px' }}>{task.description}</p>
+                  </div>
+                  {task.status !== 'COMPLETED' && (
+                    <button
+                      onClick={() => handleUpdateStatus(task.id, 'COMPLETED')}
+                      className="btn btn-outline-ops btn-sm w-100 mt-2 d-flex align-items-center justify-content-center gap-1"
+                    >
+                      <span className="material-symbols-outlined fs-6 text-success">check_circle</span>
+                      Mark Resolved
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

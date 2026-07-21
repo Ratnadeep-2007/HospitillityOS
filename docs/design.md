@@ -1,129 +1,118 @@
-# HospitalityOS — UI Design Brief
+# HospitalityOS — UI Design Brief v2 (Refinement Pass)
 
-## Read this first
+## Where we are
 
-The current UI (`src/app/globals.css`, "Nebula Obsidian Glassmorphism") uses a near-black
-background with neon cyan/violet/emerald/rose glow accents, glassmorphic cards, and hover-lift
-animations. This reads as a generic AI-generated dashboard template — the kind seen on crypto
-trackers and hackathon demos — not as enterprise operational software. **We are deliberately
-moving away from this direction, not iterating on it.** Do not carry over the neon glow, the
-"obsidian" naming, or the glassmorphism as a starting point.
+The precision-operational-tooling token system from the previous design pass (`--paper`, `--ink`,
+`--brass`, `--status-*`, `.ops-card`, status rails) is implemented in `src/app/globals.css` and
+mostly holds up: flat cards, functional status color, tabular numerals, no neon/glow/glassmorphism.
+Keep this system. Do not start over or introduce a new palette. This pass is about finishing the
+job, not replacing it.
 
-The people using this software are hotel GMs, front desk staff, housekeeping supervisors, and
-maintenance techs, often on shared desktop screens or tablets, often mid-shift and under time
-pressure, sometimes in a bright back office or a lobby, not a dark room. The design should read
-like precision operational tooling — closer to an airline ops center or a hospital nurse
-station display than a consumer app or a sci-fi control panel. Calm, legible, fast to scan under
-stress. Trustworthy, not flashy.
+Two problems are undermining it right now:
 
----
+1. **Two competing UI frameworks are loaded simultaneously** — Bootstrap 5 (`bootstrap.min.css`,
+   `bootstrap-icons`) is imported in `src/app/layout.tsx` and used throughout via grid/utility
+   classes (`row`, `col-lg-2`, `d-flex`), while Tailwind CSS is also installed and configured. Two
+   icon systems are in use at once (Material Symbols Outlined and Bootstrap Icons), which produces
+   visually inconsistent icon weights and sizes across the app. This is the single biggest thing
+   making the app look assembled rather than designed.
+2. **The integration simulator is rendered directly in the main dashboard**, immediately below the
+   stats row (`<IntegrationSimulator />` in `src/app/page.tsx`), visible to every user at all
+   times. A "Simulate Incoming Message" panel in the primary surface reads as unfinished/demo
+   software the instant a prospect or buyer sees it, regardless of how polished everything else is.
 
-## Design direction (token system)
-
-Follow this system. Don't default back to dark-mode-plus-neon-accent, and don't default to the
-other common AI-cliché instead (warm cream + serif + terracotta accent) — this has its own
-identity, grounded in hospitality operations specifically.
-
-### Color
-
-| Token | Hex | Use |
-|---|---|---|
-| `paper` | `#F7F6F2` | Primary background — warm off-white, not stark white |
-| `ink` | `#1C2321` | Primary text — near-black with a slight warmth, not pure black |
-| `slate` | `#6B7280` | Secondary text, borders, muted labels |
-| `line` | `#E4E1DA` | Hairline dividers, card borders |
-| `brass` | `#A8763E` | Primary accent — a single considered brand color, evokes a hotel key/bell without being literal or twee. Used sparingly: primary buttons, active tab, key numbers. Not gradients, not glow. |
-| `surface` | `#FFFFFF` | Card/panel background, sits on top of `paper` |
-
-**Status colors are functional, not decorative.** They exist only to communicate state, and should
-never appear as background washes or ambient glow:
-- `status-ok` `#2F8558` (room available, task completed, SLA on track)
-- `status-attention` `#B8792A` (pending, low stock, approaching SLA)
-- `status-critical` `#B23A32` (escalated, overdue, dirty room blocking check-in)
-- `status-info` `#3B6EA5` (informational, in-progress)
-
-Use these as small solid badges, left-border accents on cards, or text color — never as full-card
-neon glows or gradients.
-
-### Typography
-
-- **Display/headings:** A grounded, slightly warm sans with real character at larger sizes —
-  something like Söhne, General Sans, or similar (pick one available via Google Fonts if licensing
-  is a concern — e.g. "Instrument Sans" or "Sora" at weight 600–700 for headings). Avoid anything
-  that reads as either "startup SaaS generic" (Inter everywhere at every weight) or "AI-cliché
-  editorial serif."
-- **Body/data:** A highly legible workhorse sans built for dense tables and small sizes — Inter or
-  IBM Plex Sans are both fine here, this is not where to spend a design risk.
-- **Numerals:** Use tabular figures for any numeric data (SLA countdowns, occupancy %, inventory
-  counts) so columns of numbers align. Most of the fonts above support this via `font-variant-numeric: tabular-nums`.
-
-### Layout
-
-- Light background, white surfaces for cards, hairline borders (`1px solid line`) instead of
-  glassmorphism/blur/glow for separation.
-- Flat design — no `backdrop-filter: blur()`, no drop shadows beyond a very subtle
-  `0 1px 2px rgba(0,0,0,0.04)` for elevation. This is functional software, not a marketing page.
-- Dense information layout is fine and expected — this is an ops dashboard, not a landing page.
-  Don't over-simplify or add excessive whitespace where it costs the user scan time.
-- Status is communicated primarily through color-coded left borders on cards/rows and small solid
-  badges, not through changing the entire card's background.
-
-### Motion
-
-- Minimal. A quick `150-200ms ease` transition on hover/state-change is enough. No hover-lift
-  transforms, no glow-on-hover, no ambient background animation. The one place motion can earn its
-  keep: a brief, calm transition when a task moves status (e.g., PENDING → IN_PROGRESS) or when an
-  SLA escalates — this is information, not decoration, so it's worth a deliberate, subtle moment
-  (e.g., a border color transition + a small pulse on the badge only, not the whole card).
-
-### Signature element
-
-The one place to spend real design attention: **the SLA/status rail**. Every task card, room card,
-and workflow item carries a live deadline. Make this the visual through-line of the product — a
-thin, consistent left-edge color bar (using the status colors above) plus a small monospace/tabular
-countdown or timestamp, used consistently across every module (tasks, rooms, maintenance tickets,
-procurement requests). This is the thing a GM's eye should learn to scan for across the whole app —
-consistent, disciplined, never decorative elsewhere.
+Fix both. Details below.
 
 ---
 
-## What to avoid (explicit anti-patterns)
+## Task 1: Pick one UI framework and one icon set — remove the other
 
-- No neon glow, no glassmorphism/blur, no gradient backgrounds
-- No hover-lift `transform: translateY()` on cards
-- No more than one accent color (`brass`) used decoratively — status colors are functional only
-- No numbered-marker decoration (`01 / 02 / 03`) unless something is genuinely a sequence
-- No stock icon-in-a-circle-with-gradient treatment
-- Don't rename working CSS classes/variables purely for aesthetic reasons if it risks breaking
-  functionality — extend or replace the token values, keep the wiring stable
+**Decision: keep Bootstrap 5's grid/layout utilities (already used everywhere, low risk to rip
+out), remove Tailwind if it's not actually load-bearing anywhere, and standardize on a single icon
+set.**
+
+1. Grep the codebase for actual Tailwind utility class usage (`className="...flex...bg-...p-4..."`
+   patterns that aren't also valid as plain CSS/Bootstrap). If Tailwind is barely used outside the
+   original token-system CSS variables (which don't require Tailwind to work), remove the Tailwind
+   dependency, its config, and the `@import "tailwindcss"` line entirely. If it turns out to be
+   load-bearing in specific components, list those components back to me before removing anything
+   — don't silently break a view.
+2. Standardize on **one** icon set. Recommendation: keep Material Symbols Outlined (already the
+   primary one used per the previous design pass) and remove `bootstrap-icons` usage, replacing any
+   Bootstrap Icon references (`bi bi-*` classes) with the equivalent Material Symbol. Consistent
+   icon weight and optical size matters more than which set you pick — just pick one.
+3. After this cleanup, `npm run build` and `npm run lint` must still pass with no new errors, and
+   every existing screen must render with no missing icons or broken layout.
 
 ---
 
-## Process to follow
+## Task 2: Move the simulator out of the primary product surface
 
-1. **Update the token system first.** Rewrite the CSS custom properties in `src/app/globals.css`
-   (`--background`, `--foreground`, `--card-bg`, `--card-border`, the neon-* variables, etc.) to
-   match the palette above. Keep the variable names where reasonable so existing component code
-   doesn't need mass find-replace, but the actual values and any glow/blur effects change.
-2. **Audit every use of `.premium-card`, `.stitched-card`, `.blueprint-grid`, `.stitched-pin`, and
-   any neon/glow utility classes** in `src/app/page.tsx` (or the componentized version if the
-   page.tsx refactor has already happened). Replace blur/glow treatments with the flat,
-   hairline-bordered card style described above.
-3. **Apply the SLA/status rail pattern** consistently across task cards, room status cards, and any
-   other item with a deadline or state.
-4. **Check contrast.** Text on `paper`/`surface` must meet WCAG AA contrast minimums. Status colors
-   need to be distinguishable without relying on color alone (pair with a label/icon, not color
-   only, for accessibility).
-5. **Responsive check.** Verify the dashboard remains usable on a tablet-width viewport (this is
-   realistic hardware for housekeeping/maintenance staff), not just desktop.
-6. **Self-critique before calling it done:** does any part of this still look like a stock AI
-   dashboard template? Does the eye have one clear place to land per screen (the brass accent,
-   used sparingly) rather than competing signals? Fix before finishing.
+1. Move `<IntegrationSimulator />` out of `src/app/page.tsx`'s main render tree entirely.
+2. Create a separate route, e.g. `src/app/dev/simulator/page.tsx`, and render it there instead.
+3. Gate access: only render/allow this route when `process.env.NODE_ENV !== 'production'`, OR
+   behind an explicit env flag like `NEXT_PUBLIC_ENABLE_SIMULATOR`. In production builds without
+   that flag set, the route should 404 or redirect, not silently render an empty page.
+4. Remove any nav link, tab, or button pointing to the simulator from the main dashboard chrome.
+   It should not be discoverable by a normal user browsing the app — only reachable by someone who
+   already knows the URL (you, during a live demo, in a separate tab).
+5. Preserve all the simulator's existing functionality and its wiring to `/api/integrations/mock` —
+   this is a relocation and access-gating change, not a feature removal.
 
-## Acceptance criteria
+**Acceptance:** A production build with the flag unset shows zero trace of the simulator anywhere
+in the primary UI — no nav item, no visible route. With the flag set, `/dev/simulator` still works
+exactly as before.
 
-- No `backdrop-filter`, no neon/glow box-shadows, no gradient card backgrounds remain in the codebase.
-- A person unfamiliar with the product can tell, within 2 seconds of looking at any screen, what
-  needs attention right now (via the status rail / badge system) without reading text.
-- `npm run build` and `npm run lint` pass with no new errors.
-- Visual behavior/functionality is unchanged — this is a restyle, not a feature change.
+---
+
+## Task 3: Visual hierarchy and polish pass
+
+The token system is right; the execution needs another pass for it to read as genuinely premium
+rather than "correctly styled but flat."
+
+1. **KPI hierarchy in `StatsOverview`.** Right now every stat card appears to carry equal visual
+   weight. Not every number matters equally in the moment — decide which 1-2 numbers (e.g.
+   escalated tasks, occupancy %) deserve to be visually primary (larger, `--brass` or
+   `--status-critical` accent) versus which are secondary reference numbers (smaller, `--slate`).
+   A GM should be able to tell what needs attention without reading every card.
+2. **Spacing discipline.** Audit padding/margin consistency across `.ops-card` instances — Bootstrap
+   utility classes (`p-3`, `mb-4`, `g-3`) get applied inconsistently ad hoc per component right now.
+   Define a consistent spacing scale (e.g. 4/8/12/16/24/32px) and apply it uniformly rather than
+   picking Bootstrap spacing utilities per-component by feel.
+3. **Empty states.** Check every department view (`HousekeepingView`, `MaintenanceView`,
+   `RestaurantView`, etc.) for what renders when there's no data. A blank div or a raw "No tasks"
+   string reads as unfinished. Design one consistent empty-state pattern (icon + short direct
+   sentence, in the interface's voice — e.g. "No maintenance tickets right now" not "No data
+   found") and reuse it everywhere data can be empty.
+4. **Table/list density in data-heavy views** (Reception, Housekeeping room grids, Inventory).
+   Confirm room/task rows use tabular alignment, consistent row height, and the status-rail pattern
+   uniformly — check for any view that still uses ad hoc badge styling instead of the
+   `badge-status-*` classes already defined in `globals.css`.
+5. **Header/nav polish.** Check `ops-navbar` and `nav-tab-ops` for consistent active-state
+   treatment across all department tabs, and make sure the property/employee switcher (referenced
+   in `handleEmployeeSwitch`) doesn't look like a leftover dev control — style it as a deliberate,
+   professional account/context switcher (common enterprise pattern: small avatar or initials
+   badge + name + chevron, opening a clean dropdown).
+6. **Focus states.** Confirm every interactive element (buttons, tabs, form inputs) has a visible
+   keyboard focus ring using the `--brass` accent — required for accessibility, also a quiet signal
+   of quality craftsmanship most competitors skip.
+
+---
+
+## What NOT to touch in this pass
+
+- Don't change the color tokens, don't reintroduce dark mode, don't add gradients/glow back.
+- Don't change any data/API logic — this is CSS, component structure, and framework cleanup only.
+- Don't remove the simulator's functionality — only its visibility and reachability from the main
+  app.
+
+## Acceptance criteria for this whole pass
+
+- Only one CSS framework and one icon set remain in the codebase.
+- The simulator is unreachable from the main UI in a production build without an explicit flag.
+- Every stat/data view has a clear visual hierarchy and a designed empty state — nothing renders
+  a blank area or raw fallback text.
+- `npm run build` and `npm run lint` pass clean.
+- Manual click-through of every department tab shows consistent spacing, consistent icon
+  treatment, and consistent status-color usage — no view looks visually different in kind from
+  the others.

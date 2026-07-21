@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Inbox } from 'lucide-react';
 import { NotificationItem } from '../../types/dashboard';
 
 interface NotificationFeedProps {
@@ -10,45 +9,52 @@ interface NotificationFeedProps {
 
 export const NotificationFeed: React.FC<NotificationFeedProps> = ({ notifications }) => {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-          <Inbox className="w-4 h-4 text-blue-400" />
-          Twilio / Resend Real-Time Dispatch Log ({notifications.length})
-        </h3>
-        <span className="text-xs text-slate-400 font-mono">Real-time Outbox</span>
+    <div className="ops-card p-3.5 d-flex flex-column gap-3">
+      <div className="d-flex align-items-center justify-content-between border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+        <div className="d-flex align-items-center gap-2">
+          <span className="material-symbols-outlined text-secondary fs-5">outbox</span>
+          <h6 className="fw-bold font-display m-0">Real-Time Dispatch Outbox ({notifications.length})</h6>
+        </div>
+        <span className="badge-status-info">Live Dispatch Gateway</span>
       </div>
 
-      <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-        {notifications.map((n) => {
-          const channelColor =
-            n.channel === 'WHATSAPP'
-              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-              : n.channel === 'SMS'
-              ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-              : n.channel === 'EMAIL'
-              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-              : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+      {notifications.length === 0 ? (
+        <div className="ops-empty-state">
+          <span className="material-symbols-outlined">mark_email_read</span>
+          <span className="ops-empty-state-text">No outgoing dispatch notifications logged</span>
+        </div>
+      ) : (
+        <div className="d-flex flex-column gap-2 overflow-y-auto pr-1" style={{ maxHeight: '280px' }}>
+          {notifications.map((n) => {
+            const channelBadgeClass =
+              n.channel === 'WHATSAPP'
+                ? 'badge-status-ok'
+                : n.channel === 'SMS'
+                ? 'badge-status-info'
+                : n.channel === 'EMAIL'
+                ? 'badge-status-attention'
+                : 'badge-status-info';
 
-          return (
-            <div key={n.id} className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-3 space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border ${channelColor}`}>
-                  {n.channel || 'IN_APP'} • {n.status || 'SENT'}
-                </span>
-                <span className="text-[10px] text-slate-500 font-mono">
-                  {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
+            return (
+              <div key={n.id} className="p-3 border rounded-2 bg-white d-flex flex-column gap-1" style={{ borderColor: 'var(--line)' }}>
+                <div className="d-flex align-items-center justify-content-between">
+                  <span className={`${channelBadgeClass} text-uppercase`} style={{ fontSize: '10px' }}>
+                    {n.channel || 'IN_APP'} • {n.status || 'SENT'}
+                  </span>
+                  <span className="text-muted tabular-nums" style={{ fontSize: '10px' }}>
+                    {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <p className="text-dark mb-0 mt-1" style={{ fontSize: '12px' }}>{n.message}</p>
+                <div className="d-flex align-items-center justify-content-between text-muted mt-1" style={{ fontSize: '10px' }}>
+                  <span>Recipient: {n.recipient}</span>
+                  {n.user && <span>Sender: {n.user.name} ({n.user.role})</span>}
+                </div>
               </div>
-              <p className="text-xs text-white mt-1">{n.message}</p>
-              <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1">
-                <span>Recipient: {n.recipient}</span>
-                {n.user && <span>Sender: {n.user.name} ({n.user.role})</span>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

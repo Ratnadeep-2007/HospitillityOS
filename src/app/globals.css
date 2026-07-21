@@ -225,6 +225,48 @@ h1, h2, h3, h4, h5, h6, .font-display {
   outline: none;
 }
 
+/* Focus Ring Accessibility (docs/design.md Task 3) */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.btn:focus-visible,
+.nav-tab-ops:focus-visible {
+  outline: 2px solid var(--brass) !important;
+  outline-offset: 2px !important;
+}
+
+/* Empty State Pattern (docs/design.md Task 3) */
+.ops-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.ops-empty-state .material-symbols-outlined {
+  font-size: 28px;
+  color: var(--slate);
+  margin-bottom: 6px;
+}
+
+.ops-empty-state-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--slate);
+}
+
+/* Primary KPI Highlight Card (docs/design.md Task 3) */
+.ops-card-kpi-primary {
+  background-color: #FAF8F5;
+  border: 1.5px solid var(--brass);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

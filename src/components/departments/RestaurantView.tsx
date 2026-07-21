@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Utensils, Calendar, CheckCircle, Plus } from 'lucide-react';
 import { TaskItem, GuestItem } from '../../types/dashboard';
 
 interface RestaurantViewProps {
@@ -18,81 +17,97 @@ export const RestaurantView: React.FC<RestaurantViewProps> = ({
   openTaskModal,
 }) => {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="d-flex flex-column gap-4">
+      {/* Header Bar */}
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
         <div>
-          <h2 className="text-lg font-bold text-white tracking-wide">Restaurant & Dining Operations</h2>
-          <p className="text-xs text-slate-400">Table reservations, dining service coordination, and room service orders</p>
+          <h4 className="fw-bold font-display m-0" style={{ color: 'var(--ink)' }}>Restaurant & Dining Operations</h4>
+          <p className="text-muted small mb-0">Table reservations, dining service coordination, and room service orders</p>
         </div>
-        <button
-          onClick={openTaskModal}
-          className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-lg shadow-amber-500/20"
-        >
-          <Plus className="w-3.5 h-3.5" />
+        <button onClick={openTaskModal} className="btn btn-brass d-flex align-items-center gap-1">
+          <span className="material-symbols-outlined fs-6">add</span>
           New Dining Request Task
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="row g-4">
         {/* Restaurant Tasks */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Utensils className="w-4 h-4 text-amber-400" />
-            Restaurant Department Queue ({restaurantTasks.length} Active Requests)
-          </h3>
+        <div className="col-12 col-lg-8">
+          <div className="ops-card p-3.5 h-100 d-flex flex-column gap-3">
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+              <div className="d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined text-secondary fs-5">restaurant</span>
+                <h6 className="fw-bold font-display m-0">Restaurant Department Queue ({restaurantTasks.length})</h6>
+              </div>
+            </div>
 
-          {restaurantTasks.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 text-xs">
-              No active dining or table reservation tasks in queue.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {restaurantTasks.map((task) => (
-                <div key={task.id} className="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex flex-col justify-between space-y-2">
-                  <div>
-                    <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span className="font-semibold text-amber-400 uppercase">{task.priority}</span>
-                      <span className="text-slate-400">{task.status}</span>
+            {restaurantTasks.length === 0 ? (
+              <div className="ops-empty-state my-auto">
+                <span className="material-symbols-outlined">flatware</span>
+                <span className="ops-empty-state-text">No active dining or table reservation tasks in queue</span>
+              </div>
+            ) : (
+              <div className="row g-3">
+                {restaurantTasks.map((task) => (
+                  <div key={task.id} className="col-12 col-md-6">
+                    <div className="ops-card p-3 h-100 d-flex flex-column justify-between gap-2 status-rail-attention">
+                      <div>
+                        <div className="d-flex align-items-center justify-content-between mb-1">
+                          <span className="badge-status-attention">{task.priority}</span>
+                          <span className="text-muted text-uppercase" style={{ fontSize: '10px' }}>{task.status}</span>
+                        </div>
+                        <h6 className="fw-bold font-display text-dark mb-1">{task.title}</h6>
+                        <p className="text-muted mb-0" style={{ fontSize: '12px' }}>{task.description}</p>
+                      </div>
+                      {task.status !== 'COMPLETED' && (
+                        <button
+                          onClick={() => handleUpdateStatus(task.id, 'COMPLETED')}
+                          className="btn btn-outline-ops btn-sm w-100 mt-2 d-flex align-items-center justify-content-center gap-1"
+                        >
+                          <span className="material-symbols-outlined fs-6 text-success">check_circle</span>
+                          Mark Fulfilled
+                        </button>
+                      )}
                     </div>
-                    <h4 className="text-xs font-semibold text-white">{task.title}</h4>
-                    <p className="text-[11px] text-slate-400 mt-1">{task.description}</p>
                   </div>
-                  {task.status !== 'COMPLETED' && (
-                    <button
-                      onClick={() => handleUpdateStatus(task.id, 'COMPLETED')}
-                      className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-md py-1 text-xs font-semibold transition-colors flex items-center justify-center gap-1"
-                    >
-                      <CheckCircle className="w-3 h-3" /> Mark Fulfilled
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Dining Preferences & VIP Guest List */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Calendar className="w-4 h-4 text-emerald-400" />
-            VIP Dining Preferences
-          </h3>
-          <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-            {guests.map((g) => (
-              <div key={g.id} className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-3 space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-white">{g.name}</span>
-                  {g.loyaltyStatus && (
-                    <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-full font-semibold">
-                      {g.loyaltyStatus}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  {g.preferences ? `Dining Note: ${g.preferences}` : 'No special dietary preferences logged.'}
-                </p>
+        <div className="col-12 col-lg-4">
+          <div className="ops-card p-3.5 h-100 d-flex flex-column gap-3">
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+              <div className="d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined text-secondary fs-5">menu_book</span>
+                <h6 className="fw-bold font-display m-0">VIP Dining Preferences</h6>
               </div>
-            ))}
+            </div>
+
+            {guests.length === 0 ? (
+              <div className="ops-empty-state my-auto">
+                <span className="material-symbols-outlined">no_meals</span>
+                <span className="ops-empty-state-text">No guest dining preferences logged</span>
+              </div>
+            ) : (
+              <div className="d-flex flex-column gap-2 overflow-y-auto pr-1" style={{ maxHeight: '340px' }}>
+                {guests.map((g) => (
+                  <div key={g.id} className="p-3 border rounded-2 bg-white d-flex flex-column gap-1" style={{ borderColor: 'var(--line)' }}>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <span className="fw-bold font-display text-dark" style={{ fontSize: '13px' }}>{g.name}</span>
+                      {g.loyaltyStatus && (
+                        <span className="badge-status-attention">{g.loyaltyStatus}</span>
+                      )}
+                    </div>
+                    <p className="text-muted mb-0" style={{ fontSize: '11px' }}>
+                      {g.preferences ? `Dining Note: ${g.preferences}` : 'No special dietary preferences logged.'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Shield, X, Check } from 'lucide-react';
 import { TaskItem, DeptItem, UserAccount } from '../../types/dashboard';
 
 interface ManagerOverrideModalProps {
@@ -40,37 +39,44 @@ export const ManagerOverrideModal: React.FC<ManagerOverrideModalProps> = ({
   if (!overrideTask) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-amber-500" />
+    <div
+      className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3 z-3"
+      style={{ backgroundColor: 'rgba(28, 35, 33, 0.6)', backdropFilter: 'blur(2px)' }}
+    >
+      <div
+        className="ops-card p-4 shadow-lg w-100"
+        style={{ maxWidth: '540px', backgroundColor: 'var(--surface)', borderColor: 'var(--line)' }}
+      >
+        <div className="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3" style={{ borderColor: 'var(--line)' }}>
+          <div className="d-flex align-items-center gap-2">
+            <span className="material-symbols-outlined fs-5 text-warning">shield</span>
             <div>
-              <h2 className="text-base font-bold text-white">Manager Task Override & Reassignment</h2>
-              <p className="text-xs text-slate-400">Reassign department, staff assignee, priority or cancel task</p>
+              <h5 className="fw-bold font-display m-0" style={{ color: 'var(--ink)' }}>Manager Task Override</h5>
+              <p className="text-muted small mb-0" style={{ fontSize: '11px' }}>Reassign department, staff assignee, priority or cancel task</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={() => setOverrideTask(null)}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="btn btn-sm btn-outline-ops p-1 border-0"
           >
-            <X className="w-5 h-5" />
+            <span className="material-symbols-outlined fs-5">close</span>
           </button>
         </div>
 
-        <div className="space-y-3">
-          <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3">
-            <p className="text-xs text-slate-400">Target Task:</p>
-            <p className="text-sm font-semibold text-white mt-0.5">{overrideTask.title}</p>
-            <p className="text-xs text-slate-500 mt-1">Current Dept: {overrideTask.department?.name || 'Unassigned'}</p>
+        <div className="d-flex flex-column gap-3">
+          <div className="p-3 border rounded-2 bg-light" style={{ borderColor: 'var(--line)' }}>
+            <span className="text-muted" style={{ fontSize: '11px' }}>Target Task:</span>
+            <p className="fw-bold font-display text-dark mb-0 mt-0.5" style={{ fontSize: '13px' }}>{overrideTask.title}</p>
+            <p className="text-muted mb-0 mt-1" style={{ fontSize: '11px' }}>Current Dept: {overrideTask.department?.name || 'Unassigned'}</p>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">Reassign Department</label>
+            <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Reassign Department</label>
             <select
               value={overrideDeptId}
               onChange={(e) => setOverrideDeptId(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+              className="form-select form-control-ops"
             >
               <option value="">Keep Existing Department</option>
               {availableDepts.map((d) => (
@@ -83,11 +89,11 @@ export const ManagerOverrideModal: React.FC<ManagerOverrideModalProps> = ({
 
           {setOverrideAssigneeId && staffUsers.length > 0 && (
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Reassign Staff Member</label>
+              <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Reassign Staff Member</label>
               <select
                 value={overrideAssigneeId || ''}
                 onChange={(e) => setOverrideAssigneeId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="form-select form-control-ops"
               >
                 <option value="">Unassigned / Any Staff</option>
                 {staffUsers.map((u) => (
@@ -99,13 +105,13 @@ export const ManagerOverrideModal: React.FC<ManagerOverrideModalProps> = ({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Override Priority</label>
+          <div className="row g-2">
+            <div className="col-12 col-sm-6">
+              <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Override Priority</label>
               <select
                 value={overridePriority}
                 onChange={(e) => setOverridePriority(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="form-select form-control-ops"
               >
                 <option value="">Keep Existing Priority</option>
                 <option value="LOW">Low</option>
@@ -115,42 +121,46 @@ export const ManagerOverrideModal: React.FC<ManagerOverrideModalProps> = ({
               </select>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Override Due Date</label>
+            <div className="col-12 col-sm-6">
+              <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Override Due Date</label>
               <input
                 type="datetime-local"
                 value={overrideDueDate}
                 onChange={(e) => setOverrideDueDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="form-control form-control-ops"
               />
             </div>
           </div>
 
           {overrideLog && (
-            <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
+            <div className="p-2 border rounded bg-light text-success font-mono" style={{ fontSize: '11px', borderColor: 'var(--line)' }}>
               {overrideLog}
-            </p>
+            </div>
           )}
 
-          <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+          <div className="d-flex align-items-center justify-content-between pt-3 border-top mt-1" style={{ borderColor: 'var(--line)' }}>
             <button
+              type="button"
               onClick={() => handleManagerOverride('cancel')}
-              className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-semibold transition-colors"
+              className="btn btn-outline-danger btn-sm"
+              style={{ fontSize: '12px' }}
             >
               Cancel Task
             </button>
-            <div className="flex items-center gap-2">
+            <div className="d-flex align-items-center gap-2">
               <button
+                type="button"
                 onClick={() => setOverrideTask(null)}
-                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors"
+                className="btn btn-outline-ops"
               >
                 Close
               </button>
               <button
+                type="button"
                 onClick={() => handleManagerOverride('update')}
-                className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-lg shadow-amber-500/20"
+                className="btn btn-brass d-flex align-items-center gap-1"
               >
-                <Check className="w-3.5 h-3.5" />
+                <span className="material-symbols-outlined fs-6">check</span>
                 Apply Reassignment
               </button>
             </div>

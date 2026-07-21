@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { X, Plus } from 'lucide-react';
 import { DeptItem, RoomItem } from '../../types/dashboard';
 
 interface TaskCreateModalProps {
@@ -48,53 +47,60 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
   if (!showTaskModal) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-amber-400" />
-            <h2 className="text-base font-bold text-white">Create Operations Task</h2>
+    <div
+      className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3 z-3"
+      style={{ backgroundColor: 'rgba(28, 35, 33, 0.6)', backdropFilter: 'blur(2px)' }}
+    >
+      <div
+        className="ops-card p-4 shadow-lg w-100"
+        style={{ maxWidth: '540px', backgroundColor: 'var(--surface)', borderColor: 'var(--line)' }}
+      >
+        <div className="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3" style={{ borderColor: 'var(--line)' }}>
+          <div className="d-flex align-items-center gap-2">
+            <span className="material-symbols-outlined fs-5" style={{ color: 'var(--brass)' }}>add_task</span>
+            <h5 className="fw-bold font-display m-0" style={{ color: 'var(--ink)' }}>Create Operations Task</h5>
           </div>
           <button
+            type="button"
             onClick={() => setShowTaskModal(false)}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="btn btn-sm btn-outline-ops p-1 border-0"
           >
-            <X className="w-5 h-5" />
+            <span className="material-symbols-outlined fs-5">close</span>
           </button>
         </div>
 
-        <form onSubmit={handleCreateManualTask} className="space-y-3">
+        <form onSubmit={handleCreateManualTask} className="d-flex flex-column gap-3">
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">Task Title *</label>
+            <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Task Title *</label>
             <input
               type="text"
               required
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
               placeholder="e.g. Inspect AC Chiller Noise"
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+              className="form-control form-control-ops"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">Description / Details</label>
+            <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Description / Details</label>
             <textarea
               rows={3}
               value={taskDescription}
               onChange={(e) => setTaskDescription(e.target.value)}
               placeholder="Enter instructions, notes, or guest requirements..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+              className="form-control form-control-ops"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Target Department *</label>
+          <div className="row g-2">
+            <div className="col-12 col-sm-6">
+              <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Target Department *</label>
               <select
                 required
                 value={taskDeptId}
                 onChange={(e) => setTaskDeptId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="form-select form-control-ops"
               >
                 <option value="">Select Department</option>
                 {availableDepts.map((d) => (
@@ -105,12 +111,12 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
               </select>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Priority Level *</label>
+            <div className="col-12 col-sm-6">
+              <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Priority Level *</label>
               <select
                 value={taskPriority}
                 onChange={(e) => setTaskPriority(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="form-select form-control-ops"
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
@@ -120,13 +126,13 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Room (Optional)</label>
+          <div className="row g-2">
+            <div className="col-12 col-sm-6">
+              <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Room (Optional)</label>
               <select
                 value={taskRoomId}
                 onChange={(e) => setTaskRoomId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="form-select form-control-ops"
               >
                 <option value="">No Room Assigned</option>
                 {availableRooms.map((r) => (
@@ -137,34 +143,34 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
               </select>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Due Date / Time</label>
+            <div className="col-12 col-sm-6">
+              <label className="fw-medium text-muted mb-1" style={{ fontSize: '11px' }}>Due Date / Time</label>
               <input
                 type="datetime-local"
                 value={taskDueDate}
                 onChange={(e) => setTaskDueDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="form-control form-control-ops"
               />
             </div>
           </div>
 
           {modalLog && (
-            <p className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
+            <div className="p-2 border rounded bg-light text-success font-mono" style={{ fontSize: '11px', borderColor: 'var(--line)' }}>
               {modalLog}
-            </p>
+            </div>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="d-flex align-items-center justify-content-end gap-2 pt-2 border-top mt-1" style={{ borderColor: 'var(--line)' }}>
             <button
               type="button"
               onClick={() => setShowTaskModal(false)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors"
+              className="btn btn-outline-ops"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-lg shadow-amber-500/20"
+              className="btn btn-brass"
             >
               Create Task
             </button>

@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Bed, CheckCircle, Clock, Layers } from 'lucide-react';
 import { RoomItem, TaskItem, InventoryItem } from '../../types/dashboard';
+import { exportToCSV } from '../../lib/csvExport';
 
 interface HousekeepingViewProps {
   rooms: RoomItem[];
@@ -23,126 +23,188 @@ export const HousekeepingView: React.FC<HousekeepingViewProps> = ({
     (i) => i.department?.name?.toLowerCase() === 'housekeeping' || !i.department
   );
 
+  const handleExportRooms = () => {
+    const data = rooms.map((r) => ({
+      RoomNumber: r.roomNumber,
+      RoomType: r.roomType,
+      Status: r.status,
+    }));
+    exportToCSV('housekeeping_room_status', data);
+  };
+
+  const cleanCount = rooms.filter((r) => r.status === 'AVAILABLE').length;
+  const dirtyCount = rooms.filter((r) => r.status === 'DIRTY').length;
+  const occupiedCount = rooms.filter((r) => r.status === 'OCCUPIED').length;
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-bold text-white tracking-wide">Housekeeping & Room Turnovers</h2>
-        <p className="text-xs text-slate-400">Live room cleaning status grid, turnover task assignments, and linen inventory</p>
+    <div className="d-flex flex-column gap-4">
+      {/* Header Bar */}
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
+        <div>
+          <h4 className="fw-bold font-display m-0" style={{ color: 'var(--ink)' }}>Housekeeping & Room Turnovers</h4>
+          <p className="text-muted small mb-0">Live room cleaning status grid, turnover task assignments, and linen inventory</p>
+        </div>
+        <button onClick={handleExportRooms} className="btn btn-outline-ops d-flex align-items-center gap-1">
+          <span className="material-symbols-outlined fs-6">download</span>
+          Export Room Status CSV
+        </button>
       </div>
 
-      {/* Room Cleaning Grid */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Bed className="w-4 h-4 text-blue-400" />
-            Room Inventory Status Grid ({rooms.length} Rooms)
-          </h3>
-          <div className="flex items-center gap-3 text-xs">
-            <span className="flex items-center gap-1 text-emerald-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" /> Clean ({rooms.filter(r => r.status === 'AVAILABLE').length})
-            </span>
-            <span className="flex items-center gap-1 text-amber-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-amber-400" /> Dirty ({rooms.filter(r => r.status === 'DIRTY').length})
-            </span>
-            <span className="flex items-center gap-1 text-blue-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-blue-400" /> Occupied ({rooms.filter(r => r.status === 'OCCUPIED').length})
-            </span>
+      {/* Room Inventory Status Grid */}
+      <div className="ops-card p-3.5 d-flex flex-column gap-3">
+        <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+          <div className="d-flex align-items-center gap-2">
+            <span className="material-symbols-outlined text-secondary fs-5">cleaning_services</span>
+            <h6 className="fw-bold font-display m-0">Room Inventory Status Grid ({rooms.length} Rooms)</h6>
+          </div>
+          <div className="d-flex align-items-center gap-2" style={{ fontSize: '11px' }}>
+            <span className="badge-status-ok tabular-nums">Clean ({cleanCount})</span>
+            <span className="badge-status-attention tabular-nums">Dirty ({dirtyCount})</span>
+            <span className="badge-status-info tabular-nums">Occupied ({occupiedCount})</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-2">
-          {rooms.map((room) => {
-            const statusBg =
-              room.status === 'DIRTY'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                : room.status === 'OCCUPIED'
-                ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
-                : room.status === 'MAINTENANCE'
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
-
-            return (
-              <div
-                key={room.id}
-                className={`border rounded-lg p-2 text-center flex flex-col justify-between transition-all hover:scale-[1.02] ${statusBg}`}
-              >
-                <span className="text-xs font-bold">{room.roomNumber}</span>
-                <span className="text-[9px] uppercase font-semibold mt-1">{room.status}</span>
-                {room.status === 'DIRTY' && (
-                  <button
-                    onClick={() => handleRoomStatusChange(room.id, 'AVAILABLE')}
-                    className="mt-1.5 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[9px] font-bold py-0.5 rounded transition-colors"
-                  >
-                    Cleaned
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Housekeeping Tasks */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Clock className="w-4 h-4 text-amber-400" />
-            Housekeeping Tasks ({housekeepingTasks.length})
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {housekeepingTasks.map((task) => (
-              <div key={task.id} className="bg-slate-950/80 border border-slate-800 rounded-lg p-3 flex flex-col justify-between space-y-2">
-                <div>
-                  <div className="flex items-center justify-between text-[10px] mb-1">
-                    <span className="font-semibold text-amber-400 uppercase">{task.priority}</span>
-                    <span className="text-slate-400">{task.status}</span>
-                  </div>
-                  <h4 className="text-xs font-semibold text-white">{task.title}</h4>
-                  <p className="text-[11px] text-slate-400 mt-1">{task.description}</p>
-                </div>
-                {task.status !== 'COMPLETED' && (
-                  <button
-                    onClick={() => handleUpdateStatus(task.id, 'COMPLETED')}
-                    className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-md py-1 text-xs font-semibold transition-colors flex items-center justify-center gap-1"
-                  >
-                    <CheckCircle className="w-3 h-3" /> Mark Completed
-                  </button>
-                )}
-              </div>
-            ))}
+        {rooms.length === 0 ? (
+          <div className="ops-empty-state">
+            <span className="material-symbols-outlined">hotel</span>
+            <span className="ops-empty-state-text">No room inventory found in system</span>
           </div>
-        </div>
+        ) : (
+          <div className="row g-2">
+            {rooms.map((room) => {
+              const railClass =
+                room.status === 'DIRTY'
+                  ? 'status-rail-attention'
+                  : room.status === 'OCCUPIED'
+                  ? 'status-rail-info'
+                  : room.status === 'MAINTENANCE'
+                  ? 'status-rail-critical'
+                  : 'status-rail-ok';
 
-        {/* Housekeeping Linen & Toiletries Inventory */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Layers className="w-4 h-4 text-orange-400" />
-            Linen & Supplies Stock
-          </h3>
-          <div className="space-y-3">
-            {housekeepingInventory.map((item) => {
-              const isLow = item.quantity <= item.minimumLevel;
+              const badgeClass =
+                room.status === 'DIRTY'
+                  ? 'badge-status-attention'
+                  : room.status === 'OCCUPIED'
+                  ? 'badge-status-info'
+                  : room.status === 'MAINTENANCE'
+                  ? 'badge-status-critical'
+                  : 'badge-status-ok';
+
               return (
-                <div key={item.id} className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-3 space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-white">{item.name}</span>
-                    <span className={`font-mono text-xs ${isLow ? 'text-rose-400 font-bold' : 'text-slate-300'}`}>
-                      {item.quantity} {item.unit}
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${isLow ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                      style={{ width: `${Math.min(100, (item.quantity / (item.minimumLevel * 2)) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-500">
-                    <span>Min Threshold: {item.minimumLevel} {item.unit}</span>
-                    {isLow && <span className="text-rose-400 font-semibold">Low Stock Alert</span>}
+                <div key={room.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
+                  <div className={`ops-card p-2.5 text-center d-flex flex-column justify-content-between h-100 ${railClass}`}>
+                    <div>
+                      <span className="fw-bold font-display text-dark fs-6 d-block tabular-nums">{room.roomNumber}</span>
+                      <span className={`${badgeClass} text-uppercase mt-1 d-inline-block`} style={{ fontSize: '10px' }}>
+                        {room.status}
+                      </span>
+                    </div>
+                    {room.status === 'DIRTY' && (
+                      <button
+                        onClick={() => handleRoomStatusChange(room.id, 'AVAILABLE')}
+                        className="btn btn-brass btn-sm w-100 mt-2 py-0"
+                        style={{ fontSize: '10px' }}
+                      >
+                        Mark Cleaned
+                      </button>
+                    )}
                   </div>
                 </div>
               );
             })}
+          </div>
+        )}
+      </div>
+
+      <div className="row g-4">
+        {/* Housekeeping Tasks */}
+        <div className="col-12 col-lg-8">
+          <div className="ops-card p-3.5 h-100 d-flex flex-column gap-3">
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+              <div className="d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined text-secondary fs-5">schedule</span>
+                <h6 className="fw-bold font-display m-0">Housekeeping Department Tasks ({housekeepingTasks.length})</h6>
+              </div>
+            </div>
+
+            {housekeepingTasks.length === 0 ? (
+              <div className="ops-empty-state my-auto">
+                <span className="material-symbols-outlined">task_alt</span>
+                <span className="ops-empty-state-text">No housekeeping turnover tasks right now</span>
+              </div>
+            ) : (
+              <div className="row g-3">
+                {housekeepingTasks.map((task) => (
+                  <div key={task.id} className="col-12 col-md-6">
+                    <div className="ops-card p-3 h-100 d-flex flex-column justify-between gap-2 status-rail-attention">
+                      <div>
+                        <div className="d-flex align-items-center justify-content-between mb-1">
+                          <span className="badge-status-attention">{task.priority}</span>
+                          <span className="text-muted text-uppercase" style={{ fontSize: '10px' }}>{task.status}</span>
+                        </div>
+                        <h6 className="fw-bold font-display text-dark mb-1">{task.title}</h6>
+                        <p className="text-muted mb-0" style={{ fontSize: '12px' }}>{task.description}</p>
+                      </div>
+                      {task.status !== 'COMPLETED' && (
+                        <button
+                          onClick={() => handleUpdateStatus(task.id, 'COMPLETED')}
+                          className="btn btn-outline-ops btn-sm w-100 mt-2 d-flex align-items-center justify-content-center gap-1"
+                        >
+                          <span className="material-symbols-outlined fs-6 text-success">check_circle</span>
+                          Mark Completed
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Housekeeping Linen & Supplies Stock */}
+        <div className="col-12 col-lg-4">
+          <div className="ops-card p-3.5 h-100 d-flex flex-column gap-3">
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2" style={{ borderColor: 'var(--line)' }}>
+              <div className="d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined text-secondary fs-5">inventory_2</span>
+                <h6 className="fw-bold font-display m-0">Linen & Supplies Stock</h6>
+              </div>
+            </div>
+
+            {housekeepingInventory.length === 0 ? (
+              <div className="ops-empty-state my-auto">
+                <span className="material-symbols-outlined">inventory</span>
+                <span className="ops-empty-state-text">No linen or amenity inventory records</span>
+              </div>
+            ) : (
+              <div className="d-flex flex-column gap-2 overflow-y-auto pr-1" style={{ maxHeight: '320px' }}>
+                {housekeepingInventory.map((item) => {
+                  const isLow = item.quantity <= item.minimumLevel;
+                  return (
+                    <div key={item.id} className="p-3 border rounded-2 bg-white d-flex flex-column gap-1.5" style={{ borderColor: 'var(--line)' }}>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <span className="fw-bold font-display text-dark" style={{ fontSize: '13px' }}>{item.name}</span>
+                        <span className={`font-mono fw-bold ${isLow ? 'text-danger' : 'text-dark'}`} style={{ fontSize: '12px' }}>
+                          {item.quantity} {item.unit}
+                        </span>
+                      </div>
+                      <div className="progress" style={{ height: '6px', backgroundColor: '#EFECE6' }}>
+                        <div
+                          className={`progress-bar ${isLow ? 'bg-danger' : 'bg-success'}`}
+                          role="progressbar"
+                          style={{ width: `${Math.min(100, (item.quantity / (item.minimumLevel * 2)) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="d-flex align-items-center justify-content-between text-muted" style={{ fontSize: '10px' }}>
+                        <span>Min Threshold: {item.minimumLevel} {item.unit}</span>
+                        {isLow && <span className="badge-status-critical">Low Stock Alert</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
