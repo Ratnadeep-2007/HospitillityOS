@@ -4,8 +4,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HospitalityOS - Enterprise Operations Hub",
-  description: "AI-Powered Hospitality Operations & Omnichannel Control Room with Google Stitch & Bootstrap Architecture.",
+  title: "HospitalityOS - Operations Control Center",
+  description: "Precision Hospitality Operations Platform for daily property coordination and real-time task tracking.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -20,16 +20,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-bs-theme="dark" className="h-100 antialiased">
+    <html lang="en" data-bs-theme="light" className="h-100 antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-vh-100 bg-body-tertiary text-body font-sans">
+      <body className="min-vh-100 font-sans" style={{ backgroundColor: '#F7F6F2', color: '#1C2321' }}>
         {children}
       </body>
     </html>

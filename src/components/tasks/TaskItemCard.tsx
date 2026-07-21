@@ -19,73 +19,84 @@ export const TaskItemCard: React.FC<TaskItemCardProps> = ({
 }) => {
   const isManager = currentUserRole === 'MANAGER' || currentUserRole === 'OWNER' || currentUserRole === 'SUPERVISOR';
 
-  const priorityBadgeClass =
-    task.priority === 'URGENT'
-      ? 'badge-stitch-rose'
-      : task.priority === 'HIGH'
-      ? 'badge-stitch-violet'
-      : 'badge-stitch-indigo';
+  // Status Rail & Badge mapping according to docs/design.md
+  let railClass = 'status-rail-info';
+  let statusBadgeClass = 'badge-status-info';
 
-  const statusBadgeClass =
-    task.status === 'COMPLETED'
-      ? 'badge-stitch-emerald'
-      : task.status === 'IN_PROGRESS'
-      ? 'badge-stitch-indigo'
-      : task.status === 'ESCALATED'
-      ? 'badge-stitch-rose'
-      : 'bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-25 rounded-pill px-2 py-1';
+  if (task.status === 'COMPLETED') {
+    railClass = 'status-rail-ok';
+    statusBadgeClass = 'badge-status-ok';
+  } else if (task.status === 'ESCALATED' || task.priority === 'URGENT') {
+    railClass = 'status-rail-critical';
+    statusBadgeClass = 'badge-status-critical';
+  } else if (task.priority === 'HIGH' || task.status === 'PENDING_APPROVAL') {
+    railClass = 'status-rail-attention';
+    statusBadgeClass = 'badge-status-attention';
+  }
+
+  const formattedDueDate = task.dueDate
+    ? new Date(task.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : 'No SLA';
 
   return (
-    <div className="card-stitch p-3 d-flex flex-column justify-content-between h-100">
+    <div className={`ops-card p-3 d-flex flex-column justify-content-between h-100 ${railClass}`}>
       <div>
         <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
-          <span className={`badge ${priorityBadgeClass}`} style={{ fontSize: '10px' }}>
-            {task.priority}
+          <span className="text-uppercase fw-bold text-muted" style={{ fontSize: '10px', letterSpacing: '0.5px' }}>
+            {task.priority} Priority
           </span>
-          <span className={`badge ${statusBadgeClass}`} style={{ fontSize: '10px' }}>
+          <span className={`badge ${statusBadgeClass}`}>
             {task.status.replace(/_/g, ' ')}
           </span>
         </div>
 
-        <h6 className="fw-semibold text-white font-display mb-1 text-truncate-2" style={{ fontSize: '13px', lineHeight: '1.4' }}>
+        <h6 className="fw-semibold font-display mb-1 text-truncate-2" style={{ color: 'var(--ink)', fontSize: '14px', lineHeight: '1.4' }}>
           {task.title}
         </h6>
         {task.description && (
-          <p className="text-secondary mb-2 text-truncate-2" style={{ fontSize: '11px', lineHeight: '1.4' }}>
+          <p className="text-secondary mb-2 text-truncate-2" style={{ fontSize: '12px', lineHeight: '1.4' }}>
             {task.description}
           </p>
         )}
       </div>
 
-      <div className="pt-2 border-top border-secondary border-opacity-25 mt-2">
-        <div className="d-flex align-items-center justify-content-between text-secondary mb-2" style={{ fontSize: '11px' }}>
+      <div className="pt-2 border-top mt-2" style={{ borderColor: 'var(--line)' }}>
+        <div className="d-flex align-items-center justify-content-between text-secondary mb-2" style={{ fontSize: '11.5px' }}>
           <span className="d-flex align-items-center gap-1">
-            <span className="material-symbols-outlined fs-6 text-info">domain</span>
+            <span className="material-symbols-outlined text-muted" style={{ fontSize: '15px' }}>layers</span>
             {task.department?.name || 'Operations'}
           </span>
           {task.room && (
-            <span className="badge badge-stitch-indigo">
+            <span className="fw-semibold tabular-nums text-dark bg-light px-2 py-0.5 rounded border" style={{ borderColor: 'var(--line)' }}>
               Room {task.room.roomNumber}
             </span>
           )}
         </div>
 
-        {task.assignedUser && (
-          <div className="d-flex align-items-center gap-1 text-secondary mb-2" style={{ fontSize: '11px' }}>
-            <span className="material-symbols-outlined fs-6 text-warning">person</span>
-            <span>Assigned: <strong className="text-light">{task.assignedUser.name}</strong></span>
-          </div>
-        )}
+        <div className="d-flex align-items-center justify-content-between text-secondary mb-2" style={{ fontSize: '11.5px' }}>
+          {task.assignedUser ? (
+            <span className="d-flex align-items-center gap-1 text-truncate">
+              <span className="material-symbols-outlined text-muted" style={{ fontSize: '15px' }}>person</span>
+              <span className="text-dark fw-medium">{task.assignedUser.name}</span>
+            </span>
+          ) : (
+            <span className="text-muted fst-italic">Unassigned</span>
+          )}
+          <span className="d-flex align-items-center gap-1 tabular-nums text-muted" style={{ fontSize: '11px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
+            {formattedDueDate}
+          </span>
+        </div>
 
-        {/* Actions */}
+        {/* Action Controls */}
         <div className="d-flex align-items-center justify-content-between gap-2 pt-1">
           {task.status !== 'COMPLETED' && (
             <div className="w-100">
               {task.status === 'PENDING' && (
                 <button
                   onClick={() => handleUpdateStatus(task.id, 'IN_PROGRESS')}
-                  className="btn btn-sm btn-stitch-outline w-100 py-1"
-                  style={{ fontSize: '11px' }}
+                  className="btn btn-outline-ops w-100 py-1"
+                  style={{ fontSize: '12px' }}
                 >
                   Start Task
                 </button>
@@ -93,8 +104,8 @@ export const TaskItemCard: React.FC<TaskItemCardProps> = ({
               {task.status === 'IN_PROGRESS' && (
                 <button
                   onClick={() => handleUpdateStatus(task.id, 'COMPLETED')}
-                  className="btn btn-sm btn-stitch-primary w-100 py-1 d-flex align-items-center justify-content-center gap-1"
-                  style={{ fontSize: '11px' }}
+                  className="btn btn-brass w-100 py-1 d-flex align-items-center justify-content-center gap-1"
+                  style={{ fontSize: '12px' }}
                 >
                   <span className="material-symbols-outlined fs-6">check_circle</span>
                   Complete
@@ -106,7 +117,7 @@ export const TaskItemCard: React.FC<TaskItemCardProps> = ({
           {isManager && openOverrideModal && (
             <button
               onClick={() => openOverrideModal(task)}
-              className="btn btn-sm btn-stitch-outline text-warning py-1 whitespace-nowrap"
+              className="btn btn-outline-ops py-1 whitespace-nowrap text-muted"
               style={{ fontSize: '11px' }}
             >
               Override

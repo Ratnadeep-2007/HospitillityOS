@@ -31,96 +31,84 @@ export const StatsOverview: React.FC<StatsProps> = ({
     <div className="row g-3 mb-4">
       {/* Total Active Tasks */}
       <div className="col-6 col-md-4 col-lg-2">
-        <div className="card-stitch p-3 h-100">
+        <div className="ops-card p-3 h-100">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-info fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Total Tasks</small>
-            <div className="rounded-3 bg-info bg-opacity-15 text-info d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
-              <span className="material-symbols-outlined fs-5">monitoring</span>
-            </div>
+            <span className="text-uppercase text-muted fw-semibold" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Total Tasks</span>
+            <span className="material-symbols-outlined text-secondary fs-5">assignment</span>
           </div>
-          <div className="mt-3">
-            <span className="fs-3 fw-bold text-white font-display">{stats.total}</span>
-            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Active Queue</small>
+          <div className="mt-2">
+            <span className="fs-3 fw-bold font-display tabular-nums" style={{ color: 'var(--ink)' }}>{stats.total}</span>
+            <span className="text-muted ms-2" style={{ fontSize: '11px' }}>Active</span>
           </div>
         </div>
       </div>
 
-      {/* Urgent Escalations */}
+      {/* SLA Escalated */}
       <div className="col-6 col-md-4 col-lg-2">
-        <div className="card-stitch p-3 h-100" style={{ borderColor: stats.escalated > 0 ? 'rgba(244, 63, 94, 0.5)' : undefined }}>
+        <div className="ops-card p-3 h-100 status-rail-critical">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-danger fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>SLA Escalated</small>
-            <div className="rounded-3 bg-danger bg-opacity-15 text-danger d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
-              <span className="material-symbols-outlined fs-5">warning</span>
-            </div>
+            <span className="text-uppercase fw-semibold" style={{ fontSize: '11px', letterSpacing: '0.5px', color: 'var(--status-critical)' }}>SLA Escalated</span>
+            <span className="material-symbols-outlined fs-5" style={{ color: 'var(--status-critical)' }}>error</span>
           </div>
-          <div className="mt-3">
-            <span className="fs-3 fw-bold text-danger font-display">{stats.escalated}</span>
-            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Breached SLA</small>
+          <div className="mt-2">
+            <span className="fs-3 fw-bold font-display tabular-nums" style={{ color: 'var(--status-critical)' }}>{stats.escalated}</span>
+            <span className="text-muted ms-2" style={{ fontSize: '11px' }}>Overdue</span>
           </div>
         </div>
       </div>
 
       {/* High Priority Tasks */}
       <div className="col-6 col-md-4 col-lg-2">
-        <div className="card-stitch p-3 h-100">
+        <div className="ops-card p-3 h-100 status-rail-attention">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-warning fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>High Priority</small>
-            <div className="rounded-3 bg-warning bg-opacity-15 text-warning d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
-              <span className="material-symbols-outlined fs-5">schedule</span>
-            </div>
+            <span className="text-uppercase fw-semibold" style={{ fontSize: '11px', letterSpacing: '0.5px', color: 'var(--status-attention)' }}>High Priority</span>
+            <span className="material-symbols-outlined fs-5" style={{ color: 'var(--status-attention)' }}>priority_high</span>
           </div>
-          <div className="mt-3">
-            <span className="fs-3 fw-bold text-warning font-display">{highPriorityCount}</span>
-            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Urgent Action</small>
+          <div className="mt-2">
+            <span className="fs-3 fw-bold font-display tabular-nums" style={{ color: 'var(--status-attention)' }}>{highPriorityCount}</span>
+            <span className="text-muted ms-2" style={{ fontSize: '11px' }}>Pending</span>
           </div>
         </div>
       </div>
 
       {/* AI Routing Suggestions */}
       <div className="col-6 col-md-4 col-lg-2">
-        <div className="card-stitch p-3 h-100">
+        <div className="ops-card p-3 h-100 status-rail-info">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-primary fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>AI Routing</small>
-            <div className="rounded-3 bg-primary bg-opacity-20 text-info d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
-              <span className="material-symbols-outlined fs-5">auto_awesome</span>
-            </div>
+            <span className="text-uppercase fw-semibold" style={{ fontSize: '11px', letterSpacing: '0.5px', color: 'var(--status-info)' }}>AI Routing</span>
+            <span className="material-symbols-outlined fs-5" style={{ color: 'var(--status-info)' }}>auto_awesome</span>
           </div>
-          <div className="mt-3">
-            <span className="fs-3 fw-bold text-info font-display">{pendingRecsCount}</span>
-            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Suggestions</small>
+          <div className="mt-2">
+            <span className="fs-3 fw-bold font-display tabular-nums" style={{ color: 'var(--status-info)' }}>{pendingRecsCount}</span>
+            <span className="text-muted ms-2" style={{ fontSize: '11px' }}>Suggestions</span>
           </div>
         </div>
       </div>
 
       {/* Low Inventory */}
       <div className="col-6 col-md-4 col-lg-2">
-        <div className="card-stitch p-3 h-100">
+        <div className="ops-card p-3 h-100">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-warning fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Low Stock</small>
-            <div className="rounded-3 bg-warning bg-opacity-15 text-warning d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
-              <span className="material-symbols-outlined fs-5">inventory_2</span>
-            </div>
+            <span className="text-uppercase text-muted fw-semibold" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Low Stock</span>
+            <span className="material-symbols-outlined text-secondary fs-5">inventory_2</span>
           </div>
-          <div className="mt-3">
-            <span className="fs-3 fw-bold text-warning font-display">{lowInventoryCount}</span>
-            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>Items Low</small>
+          <div className="mt-2">
+            <span className="fs-3 fw-bold font-display tabular-nums" style={{ color: 'var(--status-attention)' }}>{lowInventoryCount}</span>
+            <span className="text-muted ms-2" style={{ fontSize: '11px' }}>Items</span>
           </div>
         </div>
       </div>
 
       {/* Occupancy Rate */}
       <div className="col-6 col-md-4 col-lg-2">
-        <div className="card-stitch p-3 h-100">
+        <div className="ops-card p-3 h-100 status-rail-ok">
           <div className="d-flex align-items-center justify-content-between">
-            <small className="text-success fw-semibold text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.5px' }}>Occupancy</small>
-            <div className="rounded-3 bg-success bg-opacity-15 text-success d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
-              <span className="material-symbols-outlined fs-5">hotel</span>
-            </div>
+            <span className="text-uppercase fw-semibold" style={{ fontSize: '11px', letterSpacing: '0.5px', color: 'var(--status-ok)' }}>Occupancy</span>
+            <span className="material-symbols-outlined fs-5" style={{ color: 'var(--status-ok)' }}>hotel</span>
           </div>
-          <div className="mt-3">
-            <span className="fs-3 fw-bold text-success font-display">{occupancyPercentage}%</span>
-            <small className="text-secondary ms-2" style={{ fontSize: '11px' }}>{occupiedRoomsCount}/{totalRoomsCount} Rooms</small>
+          <div className="mt-2">
+            <span className="fs-3 fw-bold font-display tabular-nums" style={{ color: 'var(--status-ok)' }}>{occupancyPercentage}%</span>
+            <span className="text-muted ms-2 tabular-nums" style={{ fontSize: '11px' }}>{occupiedRoomsCount}/{totalRoomsCount}</span>
           </div>
         </div>
       </div>

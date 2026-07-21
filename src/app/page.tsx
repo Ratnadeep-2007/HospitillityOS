@@ -388,7 +388,7 @@ export default function Dashboard() {
   const securityTasks = tasks.filter((t) => t.department?.name?.toLowerCase() === 'security');
 
   return (
-    <div className="min-vh-100 bg-body-tertiary text-light pb-5">
+    <div className="min-vh-100 pb-5" style={{ backgroundColor: 'var(--paper)', color: 'var(--ink)' }}>
       <Header
         apiOnline={apiOnline}
         currentUserRole={currentUserRole}
@@ -437,8 +437,8 @@ export default function Dashboard() {
           triggerSimulation={triggerSimulation}
         />
 
-        {/* Navigation Department Tabs (Bootstrap & Google Stitch) */}
-        <div className="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-4 border-bottom border-secondary border-opacity-25">
+        {/* Navigation Department Tabs (docs/design.md nav-tab-ops) */}
+        <div className="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-4 border-bottom" style={{ borderColor: 'var(--line)' }}>
           {[
             { id: 'control', label: 'All Operations Queue', icon: 'dashboard' },
             { id: 'reception', label: 'Reception & Front Desk', icon: 'hotel' },
@@ -454,12 +454,9 @@ export default function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`btn btn-sm d-flex align-items-center gap-2 rounded-3 text-nowrap fw-semibold transition-all ${
-                  isActive
-                    ? 'btn-stitch-primary shadow-sm'
-                    : 'btn-stitch-outline'
+                className={`btn btn-sm d-flex align-items-center gap-1.5 text-nowrap nav-tab-ops ${
+                  isActive ? 'active' : ''
                 }`}
-                style={{ fontSize: '12px' }}
               >
                 <span className="material-symbols-outlined fs-6">{tab.icon}</span>
                 {tab.label}
@@ -470,12 +467,14 @@ export default function Dashboard() {
 
         {/* Tab Views */}
         {activeTab === 'control' && (
-          <div className="space-y-4">
+          <div>
             <div className="d-flex align-items-center justify-content-between mb-3">
-              <h5 className="fw-bold text-white font-display m-0">All Operations Task Queue ({tasks.length})</h5>
+              <h5 className="fw-bold font-display m-0" style={{ color: 'var(--ink)' }}>
+                All Operations Task Queue <span className="text-muted tabular-nums">({tasks.length})</span>
+              </h5>
               <button
                 onClick={() => setShowTaskModal(true)}
-                className="btn btn-stitch-primary btn-sm d-flex align-items-center gap-2"
+                className="btn btn-brass d-flex align-items-center gap-1"
               >
                 <span className="material-symbols-outlined fs-6">add</span>
                 Create Task
