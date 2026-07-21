@@ -18,8 +18,8 @@ not just a market research doc.
 | Audit trail / activity log | Needed for accountability, disputes, and often insurance/compliance | ✅ |
 | Role-based access (who can see/do what) | A housekeeper shouldn't see financials; a front desk agent shouldn't reassign maintenance staff | 🟡 — role checks exist in places (manager override), not confirmed as a consistent system-wide model |
 | Multi-property / multi-tenant data isolation | Any operator with more than one location requires this, and any buyer's IT/security review will ask directly | ✅ (RLS-based, tested) — **but** incoming webhook routing must correctly map to the right property or this guarantee breaks in practice (flagged separately in the engineering brief) |
-| Works reliably on mobile/tablet | Housekeeping, maintenance, and food runners are not sitting at a desktop | ❌ — needs explicit testing/responsive pass, not confirmed |
-| Data export (CSV/PDF reports) | Owners and accountants need to pull data out, not just view it in-app | ❌ |
+| Works reliably on mobile/tablet | Housekeeping, maintenance, and food runners are not sitting at a desktop | ✅ (Responsive grid, stacked mobile cards, touch targets) |
+| Data export (CSV/PDF reports) | Owners and accountants need to pull data out, not just view it in-app | ✅ (CSV exports built for Tasks, Guests, Rooms, Inventory, Assets, & Audit Logs) |
 | Uptime/reliability during a real shift | If the app goes down during dinner service or a checkout rush, it gets abandoned within a week | ❌ — no monitoring, alerting, or documented uptime SLA |
 
 ---

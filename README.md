@@ -10,18 +10,23 @@ This repository is configured as a single-root, serverless-ready **Next.js** app
 
 ## 🛠️ Tech Stack & Design Choices
 
-*   **Framework:** [Next.js 15](https://nextjs.org/) (React, Tailwind CSS v4, containing both Frontend UI and serverless API Routes)
+*   **Framework:** [Next.js 16](https://nextjs.org/) (React 19, Bootstrap 5 layout utilities, custom **Precision Operational Tooling** token system in `globals.css`)
+*   **Iconography:** Standardized on **Material Symbols Outlined**
 *   **Database & ORM:** [Supabase PostgreSQL](https://supabase.com/) with [Prisma ORM](https://www.prisma.io/)
-*   **Authentication:** [Supabase Auth](https://supabase.com/docs/guides/auth)
+*   **Authentication & RLS:** [Supabase Auth & Row Level Security](https://supabase.com/docs/guides/auth)
 *   **Storage:** [Supabase Storage](https://supabase.com/docs/guides/storage)
 *   **Queue & Event Logs:** [Inngest](https://www.inngest.com/) (Serverless event queue, triggering Next.js HTTP API endpoints for background jobs and SLA check delays with **zero** persistent server costs)
 *   **AI Engine:** [Vercel AI SDK](https://sdk.ai.bytpl.dev/) abstraction supporting **Google Gemini** (default: 2.5 Flash) and **OpenAI**. Includes a resilient local mock fallback mode if API keys are absent.
+*   **Data Export:** Native CSV export engine across all department views (`csvExport.ts`).
 
 ---
 
 ## 📂 Repository Structure
 
 ```
+├── docs/                # Architecture, design briefs, and feature requirements specs
+│   ├── design.md
+│   └── FEATURE_REQUIREMENTS.md
 ├── prisma/
 │   ├── schema.prisma   # Database schema for Supabase Postgres
 │   └── seed.ts         # Database seeder (departments, users, rooms, tasks)
@@ -31,17 +36,22 @@ This repository is configured as a single-root, serverless-ready **Next.js** app
 │   └── icons/          # App icons
 ├── src/
 │   ├── app/
-│   │   ├── api/
-│   │   │   ├── inngest/             # Inngest Serverless Event Router
-│   │   │   ├── dashboard/stats/     # Dashboard statistics API
-│   │   │   ├── integrations/mock/   # Webhook simulators
-│   │   │   └── tasks/[id]/status/   # Task updates API
-│   │   ├── layout.tsx               # Root layout (PWA configurations)
+│   │   ├── api/                     # Serverless Next.js API endpoints
+│   │   ├── dev/simulator/           # Access-gated Integration Payload Simulator (/dev/simulator)
+│   │   ├── globals.css              # Precision Operational Tooling design system tokens
+│   │   ├── layout.tsx               # Root layout & Material Symbols fonts
 │   │   └── page.tsx                 # Operations Control Room Dashboard
+│   ├── components/
+│   │   ├── dashboard/               # Header, StatsOverview KPI hierarchy
+│   │   ├── departments/             # Reception, Housekeeping, Maintenance, Kitchen, Restaurant, Security, Management
+│   │   ├── notifications/           # Real-Time Outbox Feed
+│   │   ├── simulator/               # Integration Simulator form component
+│   │   └── tasks/                   # Task cards, Creation & Manager Override modals
 │   ├── inngest/
 │   │   └── functions.ts             # Inngest Background Tasks (AI, Booking, SLA Checks)
 │   └── lib/
 │       ├── ai.ts                    # Vercel AI SDK service engine
+│       ├── csvExport.ts             # Client-side CSV export generator
 │       ├── db.ts                    # Prisma DB client singleton
 │       └── inngest.ts               # Inngest client
 ├── docker-compose.yml   # Optional local Postgres (if not using Supabase cloud)
@@ -91,12 +101,12 @@ Open [http://localhost:8288](http://localhost:8288) to view the Inngest Dev Serv
 
 ## 🔌 Using the Integration Simulator
 
-The dashboard includes a **Mock Integration Simulator** panel on the left.
+The **Integration Payload Simulator** is access-gated to dev/demo environments and hosted separately at **`/dev/simulator`**.
 
 You can simulate:
 1.  **Incoming Guest WhatsApp Messages:** Triggers Inngest event `guest.request.created`. The AI parses the intent, resolves the booking, creates the tasks, and registers the **SLA delayed checks**.
-2.  **PMS Reservation Syncs:** Triggers `booking.created` to prepopulate arrival checklists.
-3.  **Low Inventory Alerts:** Triggers `inventory.low` to create procurement tasks.
-4.  **Asset Failures:** Triggers `maintenance.due` to generate repair tasks.
+2.  **PMS Reservation Syncs:** Triggers `booking.created` to prepopulate arrival checklists and room turnover status.
+3.  **Low Inventory Alerts:** Triggers `inventory.low` to create procurement tasks and vendor draft POs.
+4.  **Asset Failures:** Triggers `maintenance.due` to generate predictive repair work orders.
 
 *If no AI API keys are defined in `.env`, the system will automatically run in **mock AI parser mode** (using local keyword matching) so you can test all workflows for free!*
