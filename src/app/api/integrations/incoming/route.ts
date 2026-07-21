@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/db';
 import { inngest } from '../../../../lib/inngest';
+import { validateTwilioSignature } from '../../../../lib/twilio';
 
-// Real-world integration API gateway endpoint
+// Real-world Omnichannel & Twilio integration API gateway endpoint
 export async function POST(request: Request) {
   try {
     const contentType = request.headers.get('content-type') || '';
@@ -12,18 +13,40 @@ export async function POST(request: Request) {
 
     let targetPhone = '';
     let jsonPropertyId = '';
+    let isTwilioForm = false;
+    const formParams: Record<string, string> = {};
 
-    // 1. Parse incoming payload format
+    // 1. Parse incoming payload format (Twilio URLencoded or JSON)
     if (contentType.includes('application/x-www-form-urlencoded')) {
-      // Parse Twilio standard urlencoded webhook post
+      isTwilioForm = true;
       const formData = await request.formData();
-      messageText = formData.get('Body') as string || '';
-      senderPhone = formData.get('From') as string || '';
-      targetPhone = formData.get('To') as string || '';
+      formData.forEach((value, key) => {
+        formParams[key] = value.toString();
+      });
+
+      messageText = formParams['Body'] || '';
+      senderPhone = formParams['From'] || '';
+      targetPhone = formParams['To'] || '';
       source = senderPhone.startsWith('whatsapp:') ? 'WHATSAPP' : 'SMS';
+      
       // Normalize whatsapp prefix if present
-      senderPhone = senderPhone.replace('whatsapp:', '');
+      senderPhone = senderPhone.replace('whatsapp:', '').trim();
       targetPhone = targetPhone.replace('whatsapp:', '').trim();
+
+      // Validate Twilio Signature if TWILIO_AUTH_TOKEN is defined
+      const twilioSignature = request.headers.get('x-twilio-signature');
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      if (authToken && twilioSignature) {
+        const url = request.url;
+        const isValid = validateTwilioSignature(url, formParams, twilioSignature, authToken);
+        if (!isValid) {
+          console.warn('[Twilio Webhook] Invalid Twilio Signature detected.');
+          return new NextResponse('<Response><Message>Invalid Webhook Signature</Message></Response>', {
+            status: 403,
+            headers: { 'Content-Type': 'text/xml' },
+          });
+        }
+      }
     } else {
       // Parse standard JSON request payload (PMS, IoT, or external APIs)
       const json = await request.json();
@@ -38,6 +61,11 @@ export async function POST(request: Request) {
     }
 
     if (!messageText) {
+      if (isTwilioForm) {
+        return new NextResponse('<Response></Response>', {
+          headers: { 'Content-Type': 'text/xml' },
+        });
+      }
       return NextResponse.json({ error: 'Missing request payload text / Body.' }, { status: 400 });
     }
 
@@ -70,6 +98,11 @@ export async function POST(request: Request) {
     }
 
     if (!property) {
+      if (isTwilioForm) {
+        return new NextResponse('<Response><Message>Property registration not found.</Message></Response>', {
+          headers: { 'Content-Type': 'text/xml' },
+        });
+      }
       return NextResponse.json(
         { error: 'Property not found for target phone number or ID.' },
         { status: 404 }
@@ -149,6 +182,17 @@ export async function POST(request: Request) {
     });
 
     console.log(`[Enterprise API Gateway] Ingested webhook message successfully. Event ID: ${dbEvent.id}`);
+
+    // Return TwiML XML response for Twilio, or JSON for API clients
+    if (isTwilioForm) {
+      const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Message>Thank you, ${resolvedGuestName}! Your request for Room ${resolvedRoomNumber} has been received by HospitalityOS and assigned to staff.</Message>
+</Response>`;
+      return new NextResponse(twiml, {
+        headers: { 'Content-Type': 'text/xml' },
+      });
+    }
 
     return NextResponse.json({
       success: true,

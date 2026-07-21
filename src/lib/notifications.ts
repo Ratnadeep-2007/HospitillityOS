@@ -1,6 +1,7 @@
 import { db } from './db';
 import { inngest } from './inngest';
 import { NotificationChannel } from '@prisma/client';
+import { sendTwilioMessage } from './twilio';
 
 export async function sendNotification(params: {
   propertyId: string;
@@ -10,7 +11,7 @@ export async function sendNotification(params: {
   recipient: string;
   message: string;
 }) {
-  // 1. Create notification in PENDING state
+  // 1. Create notification record in database
   const notif = await db.notification.create({
     data: {
       propertyId: params.propertyId,
@@ -23,7 +24,31 @@ export async function sendNotification(params: {
     },
   });
 
-  // 2. Send event to Inngest to dispatch the third-party communication
+  // 2. Dispatch outbound Twilio message if channel is WHATSAPP or SMS
+  if (params.channel === 'WHATSAPP' || params.channel === 'SMS') {
+    try {
+      const result = await sendTwilioMessage({
+        to: params.recipient,
+        body: params.message,
+        isWhatsapp: params.channel === 'WHATSAPP',
+      });
+
+      await db.notification.update({
+        where: { id: notif.id },
+        data: {
+          status: result.success ? 'SENT' : 'FAILED',
+        },
+      });
+    } catch (err) {
+      console.error('[Notification Dispatch] Twilio delivery error:', err);
+      await db.notification.update({
+        where: { id: notif.id },
+        data: { status: 'FAILED' },
+      });
+    }
+  }
+
+  // 3. Send event to Inngest background queue
   try {
     await inngest.send({
       name: 'notification.created',

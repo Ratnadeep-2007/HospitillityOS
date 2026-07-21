@@ -1,10 +1,16 @@
 import { Inngest } from 'inngest';
 
-// Initialize the Inngest client with the app ID.
-// If the event key is the default placeholder, ignore it to force local dev server routing.
-const eventKey = process.env.INNGEST_EVENT_KEY === 'your-inngest-event-key' ? undefined : process.env.INNGEST_EVENT_KEY;
+// Initialize the Inngest client for HospitalityOS
+// Defaults to 'local' event key in local development to route to Inngest Dev Server
+const rawKey = process.env.INNGEST_EVENT_KEY;
+const isDev = process.env.NODE_ENV !== 'production';
 
-export const inngest = new Inngest({ 
+const eventKey = (!rawKey || rawKey === 'your-inngest-event-key' || rawKey.trim() === '')
+  ? 'local'
+  : rawKey;
+
+export const inngest = new Inngest({
   id: 'hospitality-os',
-  eventKey
+  eventKey,
+  isDev,
 });
